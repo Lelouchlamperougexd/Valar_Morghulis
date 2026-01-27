@@ -19,6 +19,9 @@ var (
 type User struct {
 	ID        int64    `json:"id"`
 	Username  string   `json:"username"`
+	FirstName string   `json:"first_name"`
+	LastName  string   `json:"last_name"`
+	Country   string   `json:"country"`
 	Email     string   `json:"email"`
 	Password  password `json:"-"`
 	CreatedAt string   `json:"created_at"`
@@ -54,8 +57,8 @@ type UserStore struct {
 
 func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `
-		INSERT INTO users (username, password, email, role_id) VALUES 
-    ($1, $2, $3, (SELECT id FROM roles WHERE name = $4))
+		INSERT INTO users (username, first_name, last_name, country, password, email, role_id) VALUES
+		($1, $2, $3, $4, $5, $6, (SELECT id FROM roles WHERE name = $7))
     RETURNING id, created_at
 	`
 
@@ -71,6 +74,9 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		ctx,
 		query,
 		user.Username,
+		user.FirstName,
+		user.LastName,
+		user.Country,
 		user.Password.hash,
 		user.Email,
 		role,
@@ -94,7 +100,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 
 func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT users.id, username, email, password, created_at, roles.*
+		SELECT users.id, username, first_name, last_name, country, email, password, created_at, roles.*
 		FROM users
 		JOIN roles ON (users.role_id = roles.id)
 		WHERE users.id = $1 AND is_active = true
@@ -111,6 +117,9 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	).Scan(
 		&user.ID,
 		&user.Username,
+		&user.FirstName,
+		&user.LastName,
+		&user.Country,
 		&user.Email,
 		&user.Password.hash,
 		&user.CreatedAt,

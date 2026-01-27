@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -14,9 +16,13 @@ import (
 )
 
 type RegisterUserPayload struct {
-	Username string `json:"username" validate:"required,max=100"`
-	Email    string `json:"email" validate:"required,email,max=255"`
-	Password string `json:"password" validate:"required,min=3,max=72"`
+	FirstName            string `json:"first_name" validate:"required,max=100"`
+	LastName             string `json:"last_name" validate:"required,max=100"`
+	Country              string `json:"country" validate:"required,max=100"`
+	Email                string `json:"email" validate:"required,email,max=255"`
+	Password             string `json:"password" validate:"required,min=3,max=72"`
+	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
+	Username             string `json:"username" validate:"omitempty,max=100"`
 }
 
 type UserWithToken struct {
@@ -48,9 +54,17 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	username := payload.Username
+	if username == "" {
+		username = generateUsername(payload.FirstName, payload.LastName, payload.Email)
+	}
+
 	user := &store.User{
-		Username: payload.Username,
-		Email:    payload.Email,
+		Username:  username,
+		FirstName: payload.FirstName,
+		LastName:  payload.LastName,
+		Country:   payload.Country,
+		Email:     payload.Email,
 		Role: store.Role{
 			Name: "user",
 		},
@@ -70,16 +84,31 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	hash := sha256.Sum256([]byte(plainToken))
 	hashToken := hex.EncodeToString(hash[:])
 
-	err := app.store.Users.CreateAndInvite(ctx, user, hashToken, app.config.mail.exp)
-	if err != nil {
+	// retry a few times if we generated a username that collides
+	for attempt := 0; attempt < 5; attempt++ {
+		err := app.store.Users.CreateAndInvite(ctx, user, hashToken, app.config.mail.exp)
+		if err == nil {
+			break
+		}
+
 		switch err {
 		case store.ErrDuplicateEmail:
 			app.badRequestResponse(w, r, err)
+			return
 		case store.ErrDuplicateUsername:
-			app.badRequestResponse(w, r, err)
+			user.Username = generateUsername(payload.FirstName, payload.LastName, payload.Email)
+			continue
 		default:
 			app.internalServerError(w, r, err)
+			return
 		}
+	}
+
+	// If we exhausted retries, CreateAndInvite would have returned ErrDuplicateUsername
+	// on the final attempt and we'd have continued, so we need an explicit check here.
+	// The simplest signal: user.ID is set only on success.
+	if user.ID == 0 {
+		app.badRequestResponse(w, r, store.ErrDuplicateUsername)
 		return
 	}
 
@@ -117,6 +146,30 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.internalServerError(w, r, err)
 	}
+}
+
+var usernameNonAlnum = regexp.MustCompile(`[^a-z0-9]+`)
+
+func generateUsername(firstName, lastName, email string) string {
+	base := strings.TrimSpace(strings.ToLower(firstName + "." + lastName))
+	base = usernameNonAlnum.ReplaceAllString(base, "")
+	if base == "" {
+		base = strings.ToLower(strings.Split(email, "@")[0])
+		base = usernameNonAlnum.ReplaceAllString(base, "")
+	}
+
+	if base == "" {
+		return uuid.New().String()[:12]
+	}
+
+	// keep it reasonably short
+	if len(base) > 20 {
+		base = base[:20]
+	}
+
+	// add a small suffix to reduce collisions
+	suffix := uuid.New().String()[:6]
+	return base + suffix
 }
 
 type CreateUserTokenPayload struct {
