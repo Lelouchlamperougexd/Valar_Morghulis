@@ -115,10 +115,19 @@ func main() {
 	)
 
 	// Mailer
-	// mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
-	mailtrap, err := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail)
-	if err != nil {
-		logger.Fatal(err)
+	var mailClient mailer.Client
+	if cfg.mail.mailTrap.apiKey != "" {
+		mailtrap, err := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail)
+		if err != nil {
+			logger.Fatal(err)
+		}
+		mailClient = mailtrap
+	} else {
+		if cfg.env == "production" {
+			logger.Fatal("MAILTRAP_API_KEY is required in production")
+		}
+		logger.Warn("MAILTRAP_API_KEY not set; using no-op mailer")
+		mailClient = mailer.NewNoopClient()
 	}
 
 	// Authenticator
@@ -136,7 +145,7 @@ func main() {
 		store:         store,
 		cacheStorage:  cacheStorage,
 		logger:        logger,
-		mailer:        mailtrap,
+		mailer:        mailClient,
 		authenticator: jwtAuthenticator,
 		rateLimiter:   rateLimiter,
 	}
