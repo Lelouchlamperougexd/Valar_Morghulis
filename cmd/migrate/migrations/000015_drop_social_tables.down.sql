@@ -1,0 +1,2 @@
+-- Down migration intentionally does not recreate the social tables.
+-- If you need them back, roll back to an earlier schema and re-apply the original social migrations.

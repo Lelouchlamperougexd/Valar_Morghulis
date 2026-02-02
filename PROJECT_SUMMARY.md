@@ -52,7 +52,7 @@ The backend is implemented as a Go HTTP service under `cmd/api` and uses Postgre
   - Mailtrap SMTP client (used in dev if configured)
   - No-op mailer fallback (dev only)
 - `cmd/migrate/migrations/`: SQL migrations for schema evolution
-- `cmd/migrate/seed/`: seed program that generates users/posts/comments
+- `cmd/migrate/seed/`: (removed) database seeder (not used for the Real Estate platform)
 - `docs/`: generated Swagger docs (`swagger.yaml`, `swagger.json`), plus the `docs.go` binding used by swag
 - `web/`: Vite React UI (currently minimal)
 
@@ -194,7 +194,7 @@ migrate -path=./cmd/migrate/migrations -database="$DB_ADDR" up
 ### Seed sample data (optional)
 
 ```bash
-go run ./cmd/migrate/seed/main.go
+(seeding removed)
 ```
 
 ### Run the API
