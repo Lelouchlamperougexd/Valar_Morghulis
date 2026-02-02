@@ -62,6 +62,14 @@ func main() {
 			mailTrap: mailTrapConfig{
 				apiKey: env.GetString("MAILTRAP_API_KEY", ""),
 			},
+			smtp: smtpConfig{
+				host:               env.GetString("SMTP_HOST", ""),
+				port:               env.GetInt("SMTP_PORT", 587),
+				username:           env.GetString("SMTP_USERNAME", ""),
+				password:           env.GetString("SMTP_PASSWORD", ""),
+				tls:                env.GetBool("SMTP_TLS", false),
+				insecureSkipVerify: env.GetBool("SMTP_INSECURE_SKIP_VERIFY", false),
+			},
 		},
 		auth: authConfig{
 			basic: basicConfig{
@@ -122,11 +130,25 @@ func main() {
 			logger.Fatal(err)
 		}
 		mailClient = mailtrap
+	} else if cfg.mail.smtp.host != "" {
+		smtpClient, err := mailer.NewSMTPClient(mailer.SMTPConfig{
+			Host:               cfg.mail.smtp.host,
+			Port:               cfg.mail.smtp.port,
+			Username:           cfg.mail.smtp.username,
+			Password:           cfg.mail.smtp.password,
+			FromEmail:          cfg.mail.fromEmail,
+			UseTLS:             cfg.mail.smtp.tls,
+			InsecureSkipVerify: cfg.mail.smtp.insecureSkipVerify,
+		})
+		if err != nil {
+			logger.Fatal(err)
+		}
+		mailClient = smtpClient
 	} else {
 		if cfg.env == "production" {
-			logger.Fatal("MAILTRAP_API_KEY is required in production")
+			logger.Fatal("MAILTRAP_API_KEY or SMTP_HOST is required in production")
 		}
-		logger.Warn("MAILTRAP_API_KEY not set; using no-op mailer")
+		logger.Warn("MAILTRAP_API_KEY/SMTP_HOST not set; using no-op mailer")
 		mailClient = mailer.NewNoopClient()
 	}
 

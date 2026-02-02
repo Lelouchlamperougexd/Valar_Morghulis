@@ -74,12 +74,22 @@ type basicConfig struct {
 type mailConfig struct {
 	sendGrid  sendGridConfig
 	mailTrap  mailTrapConfig
+	smtp      smtpConfig
 	fromEmail string
 	exp       time.Duration
 }
 
 type mailTrapConfig struct {
 	apiKey string
+}
+
+type smtpConfig struct {
+	host               string
+	port               int
+	username           string
+	password           string
+	tls                bool
+	insecureSkipVerify bool
 }
 
 type sendGridConfig struct {
@@ -108,7 +118,7 @@ func (app *application) mount() http.Handler {
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
-	
+
 	if app.config.rateLimiter.Enabled {
 		r.Use(app.RateLimiterMiddleware)
 	}
