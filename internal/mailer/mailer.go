@@ -3,7 +3,7 @@ package mailer
 import "embed"
 
 const (
-	FromName            = "GopherSocial"
+	FromName            = "Real Estate"
 	maxRetires          = 3
 	UserWelcomeTemplate = "user_invitation.tmpl"
 )
