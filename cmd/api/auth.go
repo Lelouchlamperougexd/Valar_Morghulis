@@ -16,13 +16,15 @@ import (
 )
 
 type RegisterUserPayload struct {
-	FirstName            string `json:"first_name" validate:"required,max=100"`
-	LastName             string `json:"last_name" validate:"required,max=100"`
+	FirstName            string `json:"first_name" validate:"required,max=100,name"`
+	LastName             string `json:"last_name" validate:"required,max=100,name"`
 	Country              string `json:"country" validate:"required,max=100"`
-	Email                string `json:"email" validate:"required,email,max=255"`
-	Password             string `json:"password" validate:"required,min=3,max=72"`
+	Email                string `json:"email" validate:"required,max=255,email_regex"`
+	Password             string `json:"password" validate:"required,min=8,max=72,password"`
 	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
 	Username             string `json:"username" validate:"omitempty,max=100"`
+	Phone                string `json:"phone" validate:"omitempty,max=20"`
+	PushOptIn            bool   `json:"push_opt_in"`
 }
 
 type UserWithToken struct {
@@ -65,6 +67,8 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		LastName:  payload.LastName,
 		Country:   payload.Country,
 		Email:     payload.Email,
+		Phone:     payload.Phone,
+		PushOptIn: payload.PushOptIn,
 		Role: store.Role{
 			Name: "user",
 		},
@@ -173,7 +177,7 @@ func generateUsername(firstName, lastName, email string) string {
 }
 
 type CreateUserTokenPayload struct {
-	Email    string `json:"email" validate:"required,email,max=255"`
+	Email    string `json:"email" validate:"required,max=255,email_regex"`
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 

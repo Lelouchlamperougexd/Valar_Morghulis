@@ -23,6 +23,8 @@ type User struct {
 	LastName  string   `json:"last_name"`
 	Country   string   `json:"country"`
 	Email     string   `json:"email"`
+	Phone     string   `json:"phone,omitempty"`
+	PushOptIn bool     `json:"push_opt_in"`
 	Password  password `json:"-"`
 	CreatedAt string   `json:"created_at"`
 	IsActive  bool     `json:"is_active"`
@@ -57,8 +59,8 @@ type UserStore struct {
 
 func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `
-		INSERT INTO users (username, first_name, last_name, country, password, email, role_id) VALUES
-		($1, $2, $3, $4, $5, $6, (SELECT id FROM roles WHERE name = $7))
+		INSERT INTO users (username, first_name, last_name, country, password, email, phone, push_opt_in, role_id) VALUES
+		($1, $2, $3, $4, $5, $6, $7, $8, (SELECT id FROM roles WHERE name = $9))
     RETURNING id, created_at
 	`
 
@@ -79,6 +81,8 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		user.Country,
 		user.Password.hash,
 		user.Email,
+		user.Phone,
+		user.PushOptIn,
 		role,
 	).Scan(
 		&user.ID,
@@ -100,7 +104,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 
 func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT users.id, username, first_name, last_name, country, email, password, created_at, roles.*
+		SELECT users.id, username, first_name, last_name, country, email, phone, push_opt_in, password, created_at, roles.*
 		FROM users
 		JOIN roles ON (users.role_id = roles.id)
 		WHERE users.id = $1 AND is_active = true
@@ -121,6 +125,8 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&user.LastName,
 		&user.Country,
 		&user.Email,
+		&user.Phone,
+		&user.PushOptIn,
 		&user.Password.hash,
 		&user.CreatedAt,
 		&user.Role.ID,
