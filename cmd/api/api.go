@@ -149,6 +149,27 @@ func (app *application) mount() http.Handler {
 			})
 		})
 
+		r.Route("/projects", func(r chi.Router) {
+			r.With(app.AuthTokenMiddleware).Post("/", app.createProjectHandler)
+		})
+
+		r.Route("/listings", func(r chi.Router) {
+			r.Get("/", app.listListingsHandler)
+			r.Get("/{listingID}", app.getListingHandler)
+			r.With(app.AuthTokenMiddleware).Post("/", app.createListingHandler)
+			r.With(app.AuthTokenMiddleware).Post("/{listingID}/applications", app.createApplicationHandler)
+		})
+
+		r.Route("/applications", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Get("/", app.listApplicationsHandler)
+			r.Route("/{applicationID}", func(r chi.Router) {
+				r.Patch("/status", app.updateApplicationStatusHandler)
+				r.Get("/messages", app.listApplicationMessagesHandler)
+				r.Post("/messages", app.createApplicationMessageHandler)
+			})
+		})
+
 		// Public routes
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
@@ -171,6 +192,11 @@ func (app *application) mount() http.Handler {
 					r.Get("/", app.getCompanyHandler)
 					r.Put("/verify", app.verifyCompanyHandler)
 				})
+			})
+
+			r.Route("/listings", func(r chi.Router) {
+				r.Get("/", app.adminListListingsHandler)
+				r.Put("/{listingID}/status", app.adminUpdateListingStatusHandler)
 			})
 		})
 	})

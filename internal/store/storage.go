@@ -38,14 +38,39 @@ type Storage struct {
 		UpdateVerificationStatus(context.Context, int64, string) error
 		List(context.Context, PaginatedFeedQuery) ([]Company, error)
 	}
+	Projects interface {
+		Create(ctx context.Context, project *Project) error
+		ListByCompany(ctx context.Context, companyID int64) ([]Project, error)
+		GetByID(ctx context.Context, id int64) (*Project, error)
+	}
+	Listings interface {
+		Create(ctx context.Context, listing *Listing, media []ListingMedia, rent *RentConstraints) error
+		UpdateStatus(ctx context.Context, id int64, status string) error
+		GetByID(ctx context.Context, id int64) (*Listing, error)
+		List(ctx context.Context, filter ListingFilter) ([]Listing, error)
+	}
+	Applications interface {
+		Create(ctx context.Context, app *Application) error
+		UpdateStatus(ctx context.Context, id int64, status string) error
+		GetByID(ctx context.Context, id int64) (*Application, error)
+		List(ctx context.Context, filter ApplicationFilter) ([]Application, error)
+	}
+	Messages interface {
+		Create(ctx context.Context, msg *ApplicationMessage) error
+		List(ctx context.Context, applicationID int64, limit, offset int) ([]ApplicationMessage, error)
+	}
 }
 
 func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 	return Storage{
-		Users:       &UserStore{db: db, cryptor: cryptor},
-		LoginEvents: &LoginEventStore{db: db},
-		Roles:       &RoleStore{db},
-		Companies:   &CompanyStore{db: db, cryptor: cryptor},
+		Users:        &UserStore{db: db, cryptor: cryptor},
+		LoginEvents:  &LoginEventStore{db: db},
+		Roles:        &RoleStore{db},
+		Companies:    &CompanyStore{db: db, cryptor: cryptor},
+		Projects:     &ProjectStore{db: db},
+		Listings:     &ListingStore{db: db},
+		Applications: &ApplicationStore{db: db},
+		Messages:     &MessageStore{db: db},
 	}
 }
 
