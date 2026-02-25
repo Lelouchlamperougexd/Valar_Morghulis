@@ -23,15 +23,17 @@ type User struct {
 	Username  string   `json:"username"`
 	FirstName string   `json:"first_name"`
 	LastName  string   `json:"last_name"`
-	Country   string   `json:"country"`
+	Country   string   `json:"country,omitempty"`
 	Email     string   `json:"email"`
 	Phone     string   `json:"phone,omitempty"`
-	PushOptIn bool     `json:"push_opt_in"`
+	PushOptIn bool     `json:"push_opt_in,omitempty"`
 	Password  password `json:"-"`
 	CreatedAt string   `json:"created_at"`
 	IsActive  bool     `json:"is_active"`
 	RoleID    int64    `json:"role_id"`
 	Role      Role     `json:"role"`
+	CompanyID *int64   `json:"company_id,omitempty"`
+	JobTitle  string   `json:"job_title,omitempty"`
 }
 
 type password struct {
@@ -89,8 +91,8 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	emailHash := crypto.HashEmail(user.Email)
 
 	query := `
-		INSERT INTO users (username, first_name, last_name, country, password, email, phone, push_opt_in, email_hash, role_id) VALUES
-		($1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT id FROM roles WHERE name = $10))
+		INSERT INTO users (username, first_name, last_name, country, password, email, phone, push_opt_in, email_hash, role_id, company_id, job_title) VALUES
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT id FROM roles WHERE name = $10), $11, $12)
     RETURNING id, created_at
 	`
 
@@ -115,6 +117,8 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		encryptedPushOptIn,
 		emailHash,
 		role,
+		user.CompanyID,
+		user.JobTitle,
 	).Scan(
 		&user.ID,
 		&user.CreatedAt,
@@ -139,7 +143,9 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	}
 
 	query := `
-		SELECT users.id, username, first_name, last_name, country, email, phone, push_opt_in, password, created_at, roles.*
+		SELECT users.id, username, first_name, last_name, country, email, phone, push_opt_in, password, created_at,
+		       company_id, job_title,
+		       roles.id, roles.name, roles.level, roles.description
 		FROM users
 		JOIN roles ON (users.role_id = roles.id)
 		WHERE users.id = $1 AND is_active = true
@@ -150,6 +156,7 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 
 	user := &User{}
 	var encryptedEmail, encryptedFirstName, encryptedLastName, encryptedPhone, encryptedPushOptIn string
+	var jobTitle sql.NullString
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -165,11 +172,16 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&encryptedPushOptIn,
 		&user.Password.hash,
 		&user.CreatedAt,
+		&user.CompanyID,
+		&jobTitle,
 		&user.Role.ID,
 		&user.Role.Name,
 		&user.Role.Level,
 		&user.Role.Description,
 	)
+	if jobTitle.Valid {
+		user.JobTitle = jobTitle.String
+	}
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -200,6 +212,30 @@ func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token strin
 			return err
 		}
 
+		if err := s.createUserInvitation(ctx, tx, token, invitationExp, user.ID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UserStore) CreateCompanyAndUser(ctx context.Context, company *Company, user *User, token string, invitationExp time.Duration) error {
+	companyStore := &CompanyStore{db: s.db, cryptor: s.cryptor}
+
+	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+		// 1. Create the company
+		if err := companyStore.Create(ctx, tx, company); err != nil {
+			return err
+		}
+
+		// 2. Link user to company and create user
+		user.CompanyID = &company.ID
+		if err := s.Create(ctx, tx, user); err != nil {
+			return err
+		}
+
+		// 3. Create invitation token
 		if err := s.createUserInvitation(ctx, tx, token, invitationExp, user.ID); err != nil {
 			return err
 		}
@@ -342,7 +378,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 
 	emailHash := crypto.HashEmail(email)
 	query := `
-		SELECT id, username, email, first_name, last_name, country, phone, push_opt_in, password, created_at
+		SELECT id, username, email, first_name, last_name, country, phone, push_opt_in, password, created_at, company_id, job_title
 		FROM users
 		WHERE email_hash = $1 AND is_active = true
 	`
@@ -352,6 +388,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 
 	user := &User{}
 	var encryptedEmail, encryptedFirstName, encryptedLastName, encryptedPhone, encryptedPushOptIn string
+	var jobTitle sql.NullString
 	err := s.db.QueryRowContext(ctx, query, emailHash).Scan(
 		&user.ID,
 		&user.Username,
@@ -363,6 +400,8 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 		&encryptedPushOptIn,
 		&user.Password.hash,
 		&user.CreatedAt,
+		&user.CompanyID,
+		&jobTitle,
 	)
 	if err != nil {
 		switch err {
@@ -371,6 +410,10 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 		default:
 			return nil, err
 		}
+	}
+
+	if jobTitle.Valid {
+		user.JobTitle = jobTitle.String
 	}
 
 	user.Email = encryptedEmail

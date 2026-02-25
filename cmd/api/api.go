@@ -152,7 +152,22 @@ func (app *application) mount() http.Handler {
 		// Public routes
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
+			r.Post("/company", app.registerCompanyHandler)
 			r.Post("/token", app.createTokenHandler)
+		})
+
+		// Admin routes
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Use(app.adminOnlyMiddleware)
+
+			r.Route("/companies", func(r chi.Router) {
+				r.Get("/", app.listCompaniesHandler)
+				r.Route("/{companyID}", func(r chi.Router) {
+					r.Get("/", app.getCompanyHandler)
+					r.Put("/verify", app.verifyCompanyHandler)
+				})
+			})
 		})
 	})
 

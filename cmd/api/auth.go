@@ -20,13 +20,29 @@ import (
 type RegisterUserPayload struct {
 	FirstName            string `json:"first_name" validate:"required,max=100,name"`
 	LastName             string `json:"last_name" validate:"required,max=100,name"`
-	Country              string `json:"country" validate:"required,max=100"`
 	Email                string `json:"email" validate:"required,max=255,email_regex"`
+	Phone                string `json:"phone" validate:"required,max=20"`
 	Password             string `json:"password" validate:"required,min=8,max=72,password"`
 	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
-	Username             string `json:"username" validate:"omitempty,max=100"`
-	Phone                string `json:"phone" validate:"omitempty,max=20"`
-	PushOptIn            bool   `json:"push_opt_in"`
+}
+
+type RegisterCompanyPayload struct {
+	// Company info
+	CompanyName        string `json:"company_name" validate:"required,max=255"`
+	RegistrationNumber string `json:"registration_number" validate:"required,max=50"`
+	City               string `json:"city" validate:"required,max=100"`
+	CompanyEmail       string `json:"company_email" validate:"required,max=255,email_regex"`
+	CompanyPhone       string `json:"company_phone" validate:"required,max=20"`
+	CompanyType        string `json:"company_type" validate:"required,oneof=agency developer"`
+
+	// Contact person
+	FirstName string `json:"first_name" validate:"required,max=100,name"`
+	LastName  string `json:"last_name" validate:"required,max=100,name"`
+	JobTitle  string `json:"job_title" validate:"required,max=100"`
+
+	// Security
+	Password             string `json:"password" validate:"required,min=8,max=72,password"`
+	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
 }
 
 type UserWithToken struct {
@@ -58,19 +74,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	username := payload.Username
-	if username == "" {
-		username = generateUsername(payload.FirstName, payload.LastName, payload.Email)
-	}
+	username := generateUsername(payload.FirstName, payload.LastName, payload.Email)
 
 	user := &store.User{
 		Username:  username,
 		FirstName: payload.FirstName,
 		LastName:  payload.LastName,
-		Country:   payload.Country,
 		Email:     payload.Email,
 		Phone:     payload.Phone,
-		PushOptIn: payload.PushOptIn,
 		Role: store.Role{
 			Name: "user",
 		},
@@ -245,6 +256,128 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := app.jsonResponse(w, http.StatusCreated, token); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// registerCompanyHandler godoc
+//
+//	@Summary		Registers a company (agency or developer)
+//	@Description	Registers a company with a contact person account. The company will be in "pending" verification status.
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		RegisterCompanyPayload	true	"Company and contact person credentials"
+//	@Success		201		{object}	UserWithToken			"Company and user registered"
+//	@Failure		400		{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/authentication/company [post]
+func (app *application) registerCompanyHandler(w http.ResponseWriter, r *http.Request) {
+	var payload RegisterCompanyPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	company := &store.Company{
+		Name:               payload.CompanyName,
+		RegistrationNumber: payload.RegistrationNumber,
+		City:               payload.City,
+		Email:              payload.CompanyEmail,
+		Phone:              payload.CompanyPhone,
+		Type:               payload.CompanyType,
+	}
+
+	username := generateUsername(payload.FirstName, payload.LastName, payload.CompanyEmail)
+
+	user := &store.User{
+		Username:  username,
+		FirstName: payload.FirstName,
+		LastName:  payload.LastName,
+		Email:     payload.CompanyEmail,
+		Phone:     payload.CompanyPhone,
+		JobTitle:  payload.JobTitle,
+		Role: store.Role{
+			Name: payload.CompanyType, // "agency" or "developer"
+		},
+	}
+
+	if err := user.Password.Set(payload.Password); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	plainToken := uuid.New().String()
+	hash := sha256.Sum256([]byte(plainToken))
+	hashToken := hex.EncodeToString(hash[:])
+
+	for attempt := 0; attempt < 5; attempt++ {
+		err := app.store.Users.CreateCompanyAndUser(ctx, company, user, hashToken, app.config.mail.exp)
+		if err == nil {
+			break
+		}
+
+		switch err {
+		case store.ErrDuplicateEmail:
+			app.badRequestResponse(w, r, err)
+			return
+		case store.ErrDuplicateCompanyEmail:
+			app.badRequestResponse(w, r, err)
+			return
+		case store.ErrDuplicateRegistrationNumber:
+			app.badRequestResponse(w, r, err)
+			return
+		case store.ErrDuplicateUsername:
+			user.Username = generateUsername(payload.FirstName, payload.LastName, payload.CompanyEmail)
+			continue
+		default:
+			app.internalServerError(w, r, err)
+			return
+		}
+	}
+
+	if user.ID == 0 {
+		app.badRequestResponse(w, r, store.ErrDuplicateUsername)
+		return
+	}
+
+	userWithToken := UserWithToken{
+		User:  user,
+		Token: plainToken,
+	}
+	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
+
+	isProdEnv := app.config.env == "production"
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
+
+	status, err := app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		app.logger.Errorw("error sending welcome email", "error", err)
+
+		if err := app.store.Users.Delete(ctx, user.ID); err != nil {
+			app.logger.Errorw("error deleting user", "error", err)
+		}
+
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	app.logger.Infow("Email sent", "status code", status)
+
+	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.internalServerError(w, r, err)
 	}
 }

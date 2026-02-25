@@ -28,6 +28,7 @@ type Storage struct {
 		GetByEmail(context.Context, string) (*User, error)
 		Create(context.Context, *sql.Tx, *User) error
 		CreateAndInvite(ctx context.Context, user *User, token string, exp time.Duration) error
+		CreateCompanyAndUser(ctx context.Context, company *Company, user *User, token string, exp time.Duration) error
 		Activate(context.Context, string) error
 		Delete(context.Context, int64) error
 	}
@@ -45,6 +46,13 @@ type Storage struct {
 	Roles interface {
 		GetByName(context.Context, string) (*Role, error)
 	}
+	Companies interface {
+		Create(context.Context, *sql.Tx, *Company) error
+		GetByID(context.Context, int64) (*Company, error)
+		GetByRegistrationNumber(context.Context, string) (*Company, error)
+		UpdateVerificationStatus(context.Context, int64, string) error
+		List(context.Context, PaginatedFeedQuery) ([]Company, error)
+	}
 }
 
 func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
@@ -55,6 +63,7 @@ func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 		Followers:   &FollowerStore{db},
 		LoginEvents: &LoginEventStore{db: db},
 		Roles:       &RoleStore{db},
+		Companies:   &CompanyStore{db: db, cryptor: cryptor},
 	}
 }
 
