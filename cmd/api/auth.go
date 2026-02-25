@@ -189,6 +189,12 @@ func generateUsername(firstName, lastName, email string) string {
 	return base + suffix
 }
 
+// LoginResponse is returned on successful login
+type LoginResponse struct {
+	Token string      `json:"token"`
+	User  *store.User `json:"user"`
+}
+
 type CreateUserTokenPayload struct {
 	Email    string `json:"email" validate:"required,max=255,email_regex"`
 	Password string `json:"password" validate:"required,min=3,max=72"`
@@ -196,13 +202,13 @@ type CreateUserTokenPayload struct {
 
 // createTokenHandler godoc
 //
-//	@Summary		Creates a token
-//	@Description	Creates a token for a user
+//	@Summary		User login
+//	@Description	Authenticates a user (any role) and returns a JWT token with user info
 //	@Tags			authentication
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload	body		CreateUserTokenPayload	true	"User credentials"
-//	@Success		200		{string}	string					"Token"
+//	@Success		200		{object}	LoginResponse			"Login successful"
 //	@Failure		400		{object}	error
 //	@Failure		401		{object}	error
 //	@Failure		500		{object}	error
@@ -240,8 +246,112 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 
 	_ = app.logLoginEvent(r, &user.ID, payload.Email, true)
 
+	token, err := app.generateToken(user.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	response := LoginResponse{
+		Token: token,
+		User:  user,
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, response); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// createAdminTokenHandler godoc
+//
+//	@Summary		Admin login
+//	@Description	Authenticates an admin or moderator and returns a JWT token. Rejects non-admin users.
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreateUserTokenPayload	true	"Admin credentials"
+//	@Success		200		{object}	LoginResponse			"Admin login successful"
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		403		{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/authentication/admin/token [post]
+func (app *application) createAdminTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var payload CreateUserTokenPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	user, err := app.store.Users.GetByEmail(r.Context(), payload.Email)
+	if err != nil {
+		switch err {
+		case store.ErrNotFound:
+			_ = app.logLoginEvent(r, nil, payload.Email, false)
+			app.unauthorizedErrorResponse(w, r, err)
+		default:
+			_ = app.logLoginEvent(r, nil, payload.Email, false)
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	// Only admin and moderator roles are allowed
+	if user.Role.Name != "admin" && user.Role.Name != "moderator" {
+		_ = app.logLoginEvent(r, &user.ID, payload.Email, false)
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	if err := user.Password.Compare(payload.Password); err != nil {
+		_ = app.logLoginEvent(r, &user.ID, payload.Email, false)
+		app.unauthorizedErrorResponse(w, r, err)
+		return
+	}
+
+	_ = app.logLoginEvent(r, &user.ID, payload.Email, true)
+
+	token, err := app.generateToken(user.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	response := LoginResponse{
+		Token: token,
+		User:  user,
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, response); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// getCurrentUserHandler godoc
+//
+//	@Summary		Get current user
+//	@Description	Returns the currently authenticated user's profile
+//	@Tags			authentication
+//	@Produce		json
+//	@Success		200		{object}	store.User
+//	@Failure		401		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/authentication/me [get]
+func (app *application) getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+func (app *application) generateToken(userID int64) (string, error) {
 	claims := jwt.MapClaims{
-		"sub": user.ID,
+		"sub": userID,
 		"exp": time.Now().Add(app.config.auth.token.exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
@@ -249,15 +359,7 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		"aud": app.config.auth.token.iss,
 	}
 
-	token, err := app.authenticator.GenerateToken(claims)
-	if err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-
-	if err := app.jsonResponse(w, http.StatusCreated, token); err != nil {
-		app.internalServerError(w, r, err)
-	}
+	return app.authenticator.GenerateToken(claims)
 }
 
 // registerCompanyHandler godoc

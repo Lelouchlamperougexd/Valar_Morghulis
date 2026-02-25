@@ -24,9 +24,165 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/authentication/token": {
+        "/admin/companies": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a paginated list of companies (for admin dashboard)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Lists companies for admin review",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Company"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/admin/companies/{companyID}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a single company",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Gets a company by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Company ID",
+                        "name": "companyID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Company"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/admin/companies/{companyID}/verify": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Admin sets the verification status of a company to \"verified\" or \"rejected\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Verifies or rejects a company",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Company ID",
+                        "name": "companyID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Verification status",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.VerifyCompanyPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Company"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/authentication/admin/token": {
             "post": {
-                "description": "Creates a token for a user",
+                "description": "Authenticates an admin or moderator and returns a JWT token. Rejects non-admin users.",
                 "consumes": [
                     "application/json"
                 ],
@@ -36,7 +192,128 @@ const docTemplate = `{
                 "tags": [
                     "authentication"
                 ],
-                "summary": "Creates a token",
+                "summary": "Admin login",
+                "parameters": [
+                    {
+                        "description": "Admin credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin login successful",
+                        "schema": {
+                            "$ref": "#/definitions/main.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/authentication/company": {
+            "post": {
+                "description": "Registers a company with a contact person account. The company will be in \"pending\" verification status.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Registers a company (agency or developer)",
+                "parameters": [
+                    {
+                        "description": "Company and contact person credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.RegisterCompanyPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Company and user registered",
+                        "schema": {
+                            "$ref": "#/definitions/main.UserWithToken"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/authentication/me": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns the currently authenticated user's profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Get current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/authentication/token": {
+            "post": {
+                "description": "Authenticates a user (any role) and returns a JWT token with user info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "User login",
                 "parameters": [
                     {
                         "description": "User credentials",
@@ -50,9 +327,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Token",
+                        "description": "Login successful",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/main.LoginResponse"
                         }
                     },
                     "400": {
@@ -132,48 +409,96 @@ const docTemplate = `{
                 }
             }
         },
-        "/posts": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Creates a post",
-                "consumes": [
-                    "application/json"
-                ],
+        "/map/objects": {
+            "get": {
+                "description": "Returns map-ready real estate objects or clusters inside the provided bounding box",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "posts"
+                    "map"
                 ],
-                "summary": "Creates a post",
+                "summary": "Map objects within bounding box",
                 "parameters": [
                     {
-                        "description": "Post payload",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.CreatePostPayload"
-                        }
+                        "type": "number",
+                        "description": "Minimum latitude",
+                        "name": "lat_min",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Maximum latitude",
+                        "name": "lat_max",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Minimum longitude",
+                        "name": "lng_min",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Maximum longitude",
+                        "name": "lng_max",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Map zoom level",
+                        "name": "zoom",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "City filter (ILIKE)",
+                        "name": "city",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Property type",
+                        "name": "property_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Minimum price",
+                        "name": "price_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Maximum price",
+                        "name": "price_max",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rooms count",
+                        "name": "rooms",
+                        "in": "query"
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.Post"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.mapObjectEnvelope"
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {}
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {}
                     },
                     "500": {
@@ -183,14 +508,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/posts/{id}": {
+        "/users": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Fetches a post by ID",
+                "description": "Fetches a user profile by email",
                 "consumes": [
                     "application/json"
                 ],
@@ -198,15 +523,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "posts"
+                    "users"
                 ],
-                "summary": "Fetches a post",
+                "summary": "Fetches a user profile",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Post ID",
-                        "name": "id",
-                        "in": "path",
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -214,110 +539,11 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.Post"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {}
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Delete a post by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "summary": "Deletes a post",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Post ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {}
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Updates a post by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "summary": "Updates a post",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Post ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Post payload",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.UpdatePostPayload"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/store.Post"
+                            "$ref": "#/definitions/store.User"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {}
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {}
                     },
                     "404": {
@@ -364,89 +590,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/users/feed": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Fetches the user feed",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feed"
-                ],
-                "summary": "Fetches the user feed",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Since",
-                        "name": "since",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Until",
-                        "name": "until",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Tags",
-                        "name": "tags",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/store.PostWithMetadata"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
                         "schema": {}
                     },
                     "500": {
@@ -504,122 +647,9 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/users/{userID}/follow": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Follows a user by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Follows a user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "User followed",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "User payload missing",
-                        "schema": {}
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/users/{userID}/unfollow": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Unfollow a user by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Unfollow a user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "User unfollowed",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "User payload missing",
-                        "schema": {}
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {}
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "main.CreatePostPayload": {
-            "type": "object",
-            "required": [
-                "content",
-                "title"
-            ],
-            "properties": {
-                "content": {
-                    "type": "string",
-                    "maxLength": 1000
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "title": {
-                    "type": "string",
-                    "maxLength": 100
-                }
-            }
-        },
         "main.CreateUserTokenPayload": {
             "type": "object",
             "required": [
@@ -638,55 +668,156 @@ const docTemplate = `{
                 }
             }
         },
+        "main.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/store.User"
+                }
+            }
+        },
+        "main.RegisterCompanyPayload": {
+            "type": "object",
+            "required": [
+                "city",
+                "company_email",
+                "company_name",
+                "company_phone",
+                "company_type",
+                "first_name",
+                "job_title",
+                "last_name",
+                "password",
+                "password_confirmation",
+                "registration_number"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "company_email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "company_name": {
+                    "description": "Company info",
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "company_phone": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "company_type": {
+                    "type": "string",
+                    "enum": [
+                        "agency",
+                        "developer"
+                    ]
+                },
+                "first_name": {
+                    "description": "Contact person",
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "job_title": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "password": {
+                    "description": "Security",
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8
+                },
+                "password_confirmation": {
+                    "type": "string"
+                },
+                "registration_number": {
+                    "type": "string",
+                    "maxLength": 50
+                }
+            }
+        },
         "main.RegisterUserPayload": {
             "type": "object",
             "required": [
                 "email",
+                "first_name",
+                "last_name",
                 "password",
-                "username"
+                "password_confirmation",
+                "phone"
             ],
             "properties": {
                 "email": {
                     "type": "string",
                     "maxLength": 255
                 },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
                 "password": {
                     "type": "string",
                     "maxLength": 72,
-                    "minLength": 3
+                    "minLength": 8
                 },
-                "username": {
-                    "type": "string",
-                    "maxLength": 100
-                }
-            }
-        },
-        "main.UpdatePostPayload": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string",
-                    "maxLength": 1000
+                "password_confirmation": {
+                    "type": "string"
                 },
-                "title": {
+                "phone": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 20
                 }
             }
         },
         "main.UserWithToken": {
             "type": "object",
             "properties": {
+                "company_id": {
+                    "type": "integer"
+                },
+                "country": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
                 "email": {
                     "type": "string"
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "is_active": {
+                    "type": "boolean"
+                },
+                "job_title": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "push_opt_in": {
                     "type": "boolean"
                 },
                 "role": {
@@ -703,111 +834,84 @@ const docTemplate = `{
                 }
             }
         },
-        "store.Comment": {
+        "main.VerifyCompanyPayload": {
             "type": "object",
+            "required": [
+                "status"
+            ],
             "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "post_id": {
-                    "type": "integer"
-                },
-                "user": {
-                    "$ref": "#/definitions/store.User"
-                },
-                "user_id": {
-                    "type": "integer"
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "verified",
+                        "rejected"
+                    ]
                 }
             }
         },
-        "store.Post": {
+        "main.mapObjectEnvelope": {
             "type": "object",
             "properties": {
-                "comments": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/store.Comment"
-                    }
+                "count": {
+                    "type": "integer"
                 },
-                "content": {
+                "id": {
+                    "type": "integer"
+                },
+                "lat": {
+                    "type": "number"
+                },
+                "lng": {
+                    "type": "number"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "property_type": {
+                    "type": "string"
+                },
+                "rooms": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.Company": {
+            "type": "object",
+            "properties": {
+                "city": {
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
                 },
+                "email": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "name": {
+                    "type": "string"
                 },
-                "title": {
+                "phone": {
+                    "type": "string"
+                },
+                "registration_number": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "\"agency\" | \"developer\"",
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 },
-                "user": {
-                    "$ref": "#/definitions/store.User"
-                },
-                "user_id": {
-                    "type": "integer"
-                },
-                "version": {
-                    "type": "integer"
-                }
-            }
-        },
-        "store.PostWithMetadata": {
-            "type": "object",
-            "properties": {
-                "comments": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/store.Comment"
-                    }
-                },
-                "comments_count": {
-                    "type": "integer"
-                },
-                "content": {
+                "verification_status": {
+                    "description": "\"pending\" | \"verified\" | \"rejected\"",
                     "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/store.User"
-                },
-                "user_id": {
-                    "type": "integer"
-                },
-                "version": {
-                    "type": "integer"
                 }
             }
         },
@@ -831,16 +935,37 @@ const docTemplate = `{
         "store.User": {
             "type": "object",
             "properties": {
+                "company_id": {
+                    "type": "integer"
+                },
+                "country": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
                 "email": {
                     "type": "string"
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "is_active": {
+                    "type": "boolean"
+                },
+                "job_title": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "push_opt_in": {
                     "type": "boolean"
                 },
                 "role": {
@@ -871,7 +996,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/v1",
 	Schemes:          []string{},
 	Title:            "Real Estate API",
-	Description:      "API for Real Estate",
+	Description:      "API for Real Estate, tool to manage real estate properties and users.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

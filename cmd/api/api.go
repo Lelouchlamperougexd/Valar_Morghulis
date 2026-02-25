@@ -154,6 +154,10 @@ func (app *application) mount() http.Handler {
 			r.Post("/user", app.registerUserHandler)
 			r.Post("/company", app.registerCompanyHandler)
 			r.Post("/token", app.createTokenHandler)
+			r.Post("/admin/token", app.createAdminTokenHandler)
+
+			// Protected auth routes
+			r.With(app.AuthTokenMiddleware).Get("/me", app.getCurrentUserHandler)
 		})
 
 		// Admin routes

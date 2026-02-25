@@ -378,8 +378,11 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 
 	emailHash := crypto.HashEmail(email)
 	query := `
-		SELECT id, username, email, first_name, last_name, country, phone, push_opt_in, password, created_at, company_id, job_title
+		SELECT users.id, username, email, first_name, last_name, country, phone, push_opt_in, password, users.created_at,
+		       company_id, job_title,
+		       roles.id, roles.name, roles.level, roles.description
 		FROM users
+		JOIN roles ON (users.role_id = roles.id)
 		WHERE email_hash = $1 AND is_active = true
 	`
 
@@ -402,6 +405,10 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 		&user.CreatedAt,
 		&user.CompanyID,
 		&jobTitle,
+		&user.Role.ID,
+		&user.Role.Name,
+		&user.Role.Level,
+		&user.Role.Description,
 	)
 	if err != nil {
 		switch err {

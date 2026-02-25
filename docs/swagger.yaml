@@ -1,21 +1,5 @@
 basePath: /v1
 definitions:
-  main.CreatePostPayload:
-    properties:
-      content:
-        maxLength: 1000
-        type: string
-      tags:
-        items:
-          type: string
-        type: array
-      title:
-        maxLength: 100
-        type: string
-    required:
-    - content
-    - title
-    type: object
   main.CreateUserTokenPayload:
     properties:
       email:
@@ -29,41 +13,117 @@ definitions:
     - email
     - password
     type: object
+  main.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/store.User'
+    type: object
+  main.RegisterCompanyPayload:
+    properties:
+      city:
+        maxLength: 100
+        type: string
+      company_email:
+        maxLength: 255
+        type: string
+      company_name:
+        description: Company info
+        maxLength: 255
+        type: string
+      company_phone:
+        maxLength: 20
+        type: string
+      company_type:
+        enum:
+        - agency
+        - developer
+        type: string
+      first_name:
+        description: Contact person
+        maxLength: 100
+        type: string
+      job_title:
+        maxLength: 100
+        type: string
+      last_name:
+        maxLength: 100
+        type: string
+      password:
+        description: Security
+        maxLength: 72
+        minLength: 8
+        type: string
+      password_confirmation:
+        type: string
+      registration_number:
+        maxLength: 50
+        type: string
+    required:
+    - city
+    - company_email
+    - company_name
+    - company_phone
+    - company_type
+    - first_name
+    - job_title
+    - last_name
+    - password
+    - password_confirmation
+    - registration_number
+    type: object
   main.RegisterUserPayload:
     properties:
       email:
         maxLength: 255
         type: string
+      first_name:
+        maxLength: 100
+        type: string
+      last_name:
+        maxLength: 100
+        type: string
       password:
         maxLength: 72
-        minLength: 3
+        minLength: 8
         type: string
-      username:
-        maxLength: 100
+      password_confirmation:
+        type: string
+      phone:
+        maxLength: 20
         type: string
     required:
     - email
+    - first_name
+    - last_name
     - password
-    - username
-    type: object
-  main.UpdatePostPayload:
-    properties:
-      content:
-        maxLength: 1000
-        type: string
-      title:
-        maxLength: 100
-        type: string
+    - password_confirmation
+    - phone
     type: object
   main.UserWithToken:
     properties:
+      company_id:
+        type: integer
+      country:
+        type: string
       created_at:
         type: string
       email:
         type: string
+      first_name:
+        type: string
       id:
         type: integer
       is_active:
+        type: boolean
+      job_title:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      push_opt_in:
         type: boolean
       role:
         $ref: '#/definitions/store.Role'
@@ -74,76 +134,59 @@ definitions:
       username:
         type: string
     type: object
-  store.Comment:
+  main.VerifyCompanyPayload:
     properties:
-      content:
+      status:
+        enum:
+        - verified
+        - rejected
         type: string
-      created_at:
-        type: string
-      id:
-        type: integer
-      post_id:
-        type: integer
-      user:
-        $ref: '#/definitions/store.User'
-      user_id:
-        type: integer
+    required:
+    - status
     type: object
-  store.Post:
+  main.mapObjectEnvelope:
     properties:
-      comments:
-        items:
-          $ref: '#/definitions/store.Comment'
-        type: array
-      content:
+      count:
+        type: integer
+      id:
+        type: integer
+      lat:
+        type: number
+      lng:
+        type: number
+      price:
+        type: integer
+      property_type:
+        type: string
+      rooms:
+        type: integer
+      type:
+        type: string
+    type: object
+  store.Company:
+    properties:
+      city:
         type: string
       created_at:
         type: string
+      email:
+        type: string
       id:
         type: integer
-      tags:
-        items:
-          type: string
-        type: array
-      title:
+      name:
+        type: string
+      phone:
+        type: string
+      registration_number:
+        type: string
+      type:
+        description: '"agency" | "developer"'
         type: string
       updated_at:
         type: string
-      user:
-        $ref: '#/definitions/store.User'
-      user_id:
-        type: integer
-      version:
-        type: integer
-    type: object
-  store.PostWithMetadata:
-    properties:
-      comments:
-        items:
-          $ref: '#/definitions/store.Comment'
-        type: array
-      comments_count:
-        type: integer
-      content:
+      verification_status:
+        description: '"pending" | "verified" | "rejected"'
         type: string
-      created_at:
-        type: string
-      id:
-        type: integer
-      tags:
-        items:
-          type: string
-        type: array
-      title:
-        type: string
-      updated_at:
-        type: string
-      user:
-        $ref: '#/definitions/store.User'
-      user_id:
-        type: integer
-      version:
-        type: integer
     type: object
   store.Role:
     properties:
@@ -158,13 +201,27 @@ definitions:
     type: object
   store.User:
     properties:
+      company_id:
+        type: integer
+      country:
+        type: string
       created_at:
         type: string
       email:
         type: string
+      first_name:
+        type: string
       id:
         type: integer
       is_active:
+        type: boolean
+      job_title:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      push_opt_in:
         type: boolean
       role:
         $ref: '#/definitions/store.Role'
@@ -178,18 +235,203 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: API for Real Estate, a social network for gohpers
+  description: API for Real Estate, tool to manage real estate properties and users.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: Real Estate API
 paths:
+  /admin/companies:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of companies (for admin dashboard)
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Company'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Lists companies for admin review
+      tags:
+      - admin
+  /admin/companies/{companyID}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a single company
+      parameters:
+      - description: Company ID
+        in: path
+        name: companyID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Company'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Gets a company by ID
+      tags:
+      - admin
+  /admin/companies/{companyID}/verify:
+    put:
+      consumes:
+      - application/json
+      description: Admin sets the verification status of a company to "verified" or
+        "rejected"
+      parameters:
+      - description: Company ID
+        in: path
+        name: companyID
+        required: true
+        type: integer
+      - description: Verification status
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.VerifyCompanyPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Company'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Verifies or rejects a company
+      tags:
+      - admin
+  /authentication/admin/token:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates an admin or moderator and returns a JWT token. Rejects
+        non-admin users.
+      parameters:
+      - description: Admin credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin login successful
+          schema:
+            $ref: '#/definitions/main.LoginResponse'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Admin login
+      tags:
+      - authentication
+  /authentication/company:
+    post:
+      consumes:
+      - application/json
+      description: Registers a company with a contact person account. The company
+        will be in "pending" verification status.
+      parameters:
+      - description: Company and contact person credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterCompanyPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Company and user registered
+          schema:
+            $ref: '#/definitions/main.UserWithToken'
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Registers a company (agency or developer)
+      tags:
+      - authentication
+  /authentication/me:
+    get:
+      description: Returns the currently authenticated user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "401":
+          description: Unauthorized
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get current user
+      tags:
+      - authentication
   /authentication/token:
     post:
       consumes:
       - application/json
-      description: Creates a token for a user
+      description: Authenticates a user (any role) and returns a JWT token with user
+        info
       parameters:
       - description: User credentials
         in: body
@@ -201,9 +443,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Token
+          description: Login successful
           schema:
-            type: string
+            $ref: '#/definitions/main.LoginResponse'
         "400":
           description: Bad Request
           schema: {}
@@ -213,7 +455,7 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Creates a token
+      summary: User login
       tags:
       - authentication
   /authentication/user:
@@ -257,125 +499,96 @@ paths:
       summary: Healthcheck
       tags:
       - ops
-  /posts:
-    post:
-      consumes:
-      - application/json
-      description: Creates a post
+  /map/objects:
+    get:
+      description: Returns map-ready real estate objects or clusters inside the provided
+        bounding box
       parameters:
-      - description: Post payload
-        in: body
-        name: payload
+      - description: Minimum latitude
+        in: query
+        name: lat_min
         required: true
-        schema:
-          $ref: '#/definitions/main.CreatePostPayload'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/store.Post'
-        "400":
-          description: Bad Request
-          schema: {}
-        "401":
-          description: Unauthorized
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Creates a post
-      tags:
-      - posts
-  /posts/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a post by ID
-      parameters:
-      - description: Post ID
-        in: path
-        name: id
+        type: number
+      - description: Maximum latitude
+        in: query
+        name: lat_max
         required: true
+        type: number
+      - description: Minimum longitude
+        in: query
+        name: lng_min
+        required: true
+        type: number
+      - description: Maximum longitude
+        in: query
+        name: lng_max
+        required: true
+        type: number
+      - description: Map zoom level
+        in: query
+        name: zoom
+        type: integer
+      - description: City filter (ILIKE)
+        in: query
+        name: city
+        type: string
+      - description: Property type
+        in: query
+        name: property_type
+        type: string
+      - description: Minimum price
+        format: int64
+        in: query
+        name: price_min
+        type: integer
+      - description: Maximum price
+        format: int64
+        in: query
+        name: price_max
+        type: integer
+      - description: Rooms count
+        in: query
+        name: rooms
         type: integer
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           schema:
-            type: string
-        "404":
-          description: Not Found
+            items:
+              $ref: '#/definitions/main.mapObjectEnvelope'
+            type: array
+        "400":
+          description: Bad Request
           schema: {}
         "500":
           description: Internal Server Error
           schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Deletes a post
+      summary: Map objects within bounding box
       tags:
-      - posts
+      - map
+  /users:
     get:
       consumes:
       - application/json
-      description: Fetches a post by ID
+      description: Fetches a user profile by email
       parameters:
-      - description: Post ID
-        in: path
-        name: id
+      - description: User email
+        in: query
+        name: email
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.Post'
-        "404":
-          description: Not Found
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Fetches a post
-      tags:
-      - posts
-    patch:
-      consumes:
-      - application/json
-      description: Updates a post by ID
-      parameters:
-      - description: Post ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Post payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.UpdatePostPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/store.Post'
+            $ref: '#/definitions/store.User'
         "400":
           description: Bad Request
           schema: {}
-        "401":
-          description: Unauthorized
-          schema: {}
         "404":
           description: Not Found
           schema: {}
@@ -384,9 +597,9 @@ paths:
           schema: {}
       security:
       - ApiKeyAuth: []
-      summary: Updates a post
+      summary: Fetches a user profile
       tags:
-      - posts
+      - users
   /users/{id}:
     get:
       consumes:
@@ -419,64 +632,6 @@ paths:
       summary: Fetches a user profile
       tags:
       - users
-  /users/{userID}/follow:
-    put:
-      consumes:
-      - application/json
-      description: Follows a user by ID
-      parameters:
-      - description: User ID
-        in: path
-        name: userID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: User followed
-          schema:
-            type: string
-        "400":
-          description: User payload missing
-          schema: {}
-        "404":
-          description: User not found
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Follows a user
-      tags:
-      - users
-  /users/{userID}/unfollow:
-    put:
-      consumes:
-      - application/json
-      description: Unfollow a user by ID
-      parameters:
-      - description: User ID
-        in: path
-        name: userID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: User unfollowed
-          schema:
-            type: string
-        "400":
-          description: User payload missing
-          schema: {}
-        "404":
-          description: User not found
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Unfollow a user
-      tags:
-      - users
   /users/activate/{token}:
     put:
       description: Activates/Register a user by invitation token
@@ -504,60 +659,6 @@ paths:
       summary: Activates/Register a user
       tags:
       - users
-  /users/feed:
-    get:
-      consumes:
-      - application/json
-      description: Fetches the user feed
-      parameters:
-      - description: Since
-        in: query
-        name: since
-        type: string
-      - description: Until
-        in: query
-        name: until
-        type: string
-      - description: Limit
-        in: query
-        name: limit
-        type: integer
-      - description: Offset
-        in: query
-        name: offset
-        type: integer
-      - description: Sort
-        in: query
-        name: sort
-        type: string
-      - description: Tags
-        in: query
-        name: tags
-        type: string
-      - description: Search
-        in: query
-        name: search
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/store.PostWithMetadata'
-            type: array
-        "400":
-          description: Bad Request
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Fetches the user feed
-      tags:
-      - feed
 securityDefinitions:
   ApiKeyAuth:
     in: header
