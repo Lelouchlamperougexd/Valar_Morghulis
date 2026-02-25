@@ -172,6 +172,404 @@
                 }
             }
         },
+        "/admin/listings": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "List listings for moderation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "draft|moderation|active|rejected|archived",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "rent|sale",
+                        "name": "deal_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "City",
+                        "name": "city",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Property type",
+                        "name": "property_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Listing"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/admin/listings/{listingID}/status": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Update listing status (moderation)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Listing ID",
+                        "name": "listingID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateListingStatusPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Listing"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/applications": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "User sees own apps; company sees apps for its listings",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List applications (my or company)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "new|review|approved|rejected",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Application"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/applications/{applicationID}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List messages for application",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Application ID",
+                        "name": "applicationID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.ApplicationMessage"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "Send message in application chat",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Application ID",
+                        "name": "applicationID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Message body",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.ApplicationMessagePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/store.ApplicationMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/applications/{applicationID}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "Update application status (company)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Application ID",
+                        "name": "applicationID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateApplicationStatusPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Application"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/authentication/admin/token": {
             "post": {
                 "description": "Authenticates an admin or moderator and returns a JWT token. Rejects non-admin users.",
@@ -401,54 +799,26 @@
                 }
             }
         },
-        "/map/objects": {
+        "/listings": {
             "get": {
-                "description": "Returns map-ready real estate objects or clusters inside the provided bounding box",
+                "description": "Returns active listings with filters",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "map"
+                    "listings"
                 ],
-                "summary": "Map objects within bounding box",
+                "summary": "Public catalog listings",
                 "parameters": [
                     {
-                        "type": "number",
-                        "description": "Minimum latitude",
-                        "name": "lat_min",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Maximum latitude",
-                        "name": "lat_max",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Minimum longitude",
-                        "name": "lng_min",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Maximum longitude",
-                        "name": "lng_max",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Map zoom level",
-                        "name": "zoom",
+                        "type": "string",
+                        "description": "rent|sale",
+                        "name": "deal_type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "City filter (ILIKE)",
+                        "description": "City",
                         "name": "city",
                         "in": "query"
                     },
@@ -460,22 +830,50 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Minimum price",
+                        "description": "Min price",
                         "name": "price_min",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Maximum price",
+                        "description": "Max price",
                         "name": "price_max",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Rooms count",
-                        "name": "rooms",
+                        "description": "Min rooms",
+                        "name": "rooms_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max rooms",
+                        "name": "rooms_max",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Min area",
+                        "name": "area_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Max area",
+                        "name": "area_max",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
                         "in": "query"
                     }
                 ],
@@ -485,12 +883,226 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.mapObjectEnvelope"
+                                "$ref": "#/definitions/store.Listing"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create listing; defaults to status=moderation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "listings"
+                ],
+                "summary": "Create listing (agency/developer)",
+                "parameters": [
+                    {
+                        "description": "Listing data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateListingPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/store.Listing"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/listings/{listingID}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "listings"
+                ],
+                "summary": "Get listing by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Listing ID",
+                        "name": "listingID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Listing"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/listings/{listingID}/applications": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Requires authenticated user; checks rent constraints for compatibility flag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "Create application for listing",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Listing ID",
+                        "name": "listingID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Application data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateApplicationPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/store.Application"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/projects": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Developers create a project container for listings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "projects"
+                ],
+                "summary": "Create project (developer)",
+                "parameters": [
+                    {
+                        "description": "Project data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.ProjectPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/store.Project"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {}
                     },
                     "500": {
@@ -642,6 +1254,143 @@
         }
     },
     "definitions": {
+        "main.ApplicationMessagePayload": {
+            "type": "object",
+            "required": [
+                "body"
+            ],
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "maxLength": 5000
+                }
+            }
+        },
+        "main.CreateApplicationPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "full_name",
+                "phone"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "full_name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "has_children": {
+                    "type": "boolean"
+                },
+                "has_pets": {
+                    "type": "boolean"
+                },
+                "is_student": {
+                    "type": "boolean"
+                },
+                "needs_mortgage": {
+                    "type": "boolean"
+                },
+                "occupant_count": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "purchase_term": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "stay_term_months": {
+                    "type": "integer",
+                    "maximum": 120,
+                    "minimum": 0
+                }
+            }
+        },
+        "main.CreateListingPayload": {
+            "type": "object",
+            "required": [
+                "city",
+                "deal_type",
+                "description",
+                "price",
+                "property_type",
+                "title"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "area": {
+                    "type": "number"
+                },
+                "city": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "deal_type": {
+                    "type": "string",
+                    "enum": [
+                        "rent",
+                        "sale"
+                    ]
+                },
+                "description": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer",
+                    "maximum": 200,
+                    "minimum": 0
+                },
+                "media": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                        "$ref": "#/definitions/main.ListingMediaPayload"
+                    }
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "property_type": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "rent_constraints": {
+                    "$ref": "#/definitions/main.RentConstraintsPayload"
+                },
+                "rooms": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 0
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "total_floors": {
+                    "type": "integer",
+                    "maximum": 200,
+                    "minimum": 0
+                }
+            }
+        },
         "main.CreateUserTokenPayload": {
             "type": "object",
             "required": [
@@ -660,6 +1409,21 @@
                 }
             }
         },
+        "main.ListingMediaPayload": {
+            "type": "object",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "position": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "main.LoginResponse": {
             "type": "object",
             "properties": {
@@ -668,6 +1432,27 @@
                 },
                 "user": {
                     "$ref": "#/definitions/store.User"
+                }
+            }
+        },
+        "main.ProjectPayload": {
+            "type": "object",
+            "required": [
+                "city",
+                "name"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
                 }
             }
         },
@@ -776,6 +1561,63 @@
                 }
             }
         },
+        "main.RentConstraintsPayload": {
+            "type": "object",
+            "properties": {
+                "allow_children": {
+                    "type": "boolean"
+                },
+                "allow_pets": {
+                    "type": "boolean"
+                },
+                "allow_students": {
+                    "type": "boolean"
+                },
+                "max_occupants": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "min_term_months": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "main.UpdateApplicationStatusPayload": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "new",
+                        "review",
+                        "approved",
+                        "rejected"
+                    ]
+                }
+            }
+        },
+        "main.UpdateListingStatusPayload": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "moderation",
+                        "active",
+                        "rejected",
+                        "archived"
+                    ]
+                }
+            }
+        },
         "main.UserWithToken": {
             "type": "object",
             "properties": {
@@ -841,32 +1683,85 @@
                 }
             }
         },
-        "main.mapObjectEnvelope": {
+        "store.Application": {
             "type": "object",
             "properties": {
-                "count": {
-                    "type": "integer"
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deal_type": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "has_children": {
+                    "type": "boolean"
+                },
+                "has_pets": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "lat": {
-                    "type": "number"
+                "is_compatible": {
+                    "type": "boolean"
                 },
-                "lng": {
-                    "type": "number"
+                "is_student": {
+                    "type": "boolean"
                 },
-                "price": {
+                "listing_id": {
                     "type": "integer"
                 },
-                "property_type": {
-                    "type": "string"
+                "needs_mortgage": {
+                    "type": "boolean"
                 },
-                "rooms": {
+                "occupant_count": {
                     "type": "integer"
                 },
-                "type": {
+                "phone": {
                     "type": "string"
+                },
+                "purchase_term": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "stay_term_months": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "store.ApplicationMessage": {
+            "type": "object",
+            "properties": {
+                "application_id": {
+                    "type": "integer"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "sender_user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -904,6 +1799,140 @@
                 "verification_status": {
                     "description": "\"pending\" | \"verified\" | \"rejected\"",
                     "type": "string"
+                }
+            }
+        },
+        "store.Listing": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "number"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "company_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deal_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/store.ListingMedia"
+                    }
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "property_type": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "rent_constraints": {
+                    "$ref": "#/definitions/store.RentConstraints"
+                },
+                "rooms": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "total_floors": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.ListingMedia": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "listing_id": {
+                    "type": "integer"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.Project": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "company_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.RentConstraints": {
+            "type": "object",
+            "properties": {
+                "allow_children": {
+                    "type": "boolean"
+                },
+                "allow_pets": {
+                    "type": "boolean"
+                },
+                "allow_students": {
+                    "type": "boolean"
+                },
+                "listing_id": {
+                    "type": "integer"
+                },
+                "max_occupants": {
+                    "type": "integer"
+                },
+                "min_term_months": {
+                    "type": "integer"
                 }
             }
         },

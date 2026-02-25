@@ -1,5 +1,105 @@
 basePath: /v1
 definitions:
+  main.ApplicationMessagePayload:
+    properties:
+      body:
+        maxLength: 5000
+        type: string
+    required:
+    - body
+    type: object
+  main.CreateApplicationPayload:
+    properties:
+      comment:
+        maxLength: 2000
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      full_name:
+        maxLength: 255
+        type: string
+      has_children:
+        type: boolean
+      has_pets:
+        type: boolean
+      is_student:
+        type: boolean
+      needs_mortgage:
+        type: boolean
+      occupant_count:
+        maximum: 20
+        minimum: 1
+        type: integer
+      phone:
+        maxLength: 50
+        type: string
+      purchase_term:
+        maxLength: 255
+        type: string
+      stay_term_months:
+        maximum: 120
+        minimum: 0
+        type: integer
+    required:
+    - email
+    - full_name
+    - phone
+    type: object
+  main.CreateListingPayload:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      area:
+        type: number
+      city:
+        maxLength: 100
+        type: string
+      deal_type:
+        enum:
+        - rent
+        - sale
+        type: string
+      description:
+        type: string
+      floor:
+        maximum: 200
+        minimum: 0
+        type: integer
+      media:
+        items:
+          $ref: '#/definitions/main.ListingMediaPayload'
+        maxItems: 20
+        type: array
+      price:
+        type: integer
+      project_id:
+        type: integer
+      property_type:
+        maxLength: 50
+        type: string
+      rent_constraints:
+        $ref: '#/definitions/main.RentConstraintsPayload'
+      rooms:
+        maximum: 20
+        minimum: 0
+        type: integer
+      title:
+        maxLength: 255
+        type: string
+      total_floors:
+        maximum: 200
+        minimum: 0
+        type: integer
+    required:
+    - city
+    - deal_type
+    - description
+    - price
+    - property_type
+    - title
+    type: object
   main.CreateUserTokenPayload:
     properties:
       email:
@@ -13,12 +113,37 @@ definitions:
     - email
     - password
     type: object
+  main.ListingMediaPayload:
+    properties:
+      position:
+        minimum: 0
+        type: integer
+      url:
+        type: string
+    required:
+    - url
+    type: object
   main.LoginResponse:
     properties:
       token:
         type: string
       user:
         $ref: '#/definitions/store.User'
+    type: object
+  main.ProjectPayload:
+    properties:
+      city:
+        maxLength: 100
+        type: string
+      description:
+        maxLength: 2000
+        type: string
+      name:
+        maxLength: 255
+        type: string
+    required:
+    - city
+    - name
     type: object
   main.RegisterCompanyPayload:
     properties:
@@ -101,6 +226,46 @@ definitions:
     - password_confirmation
     - phone
     type: object
+  main.RentConstraintsPayload:
+    properties:
+      allow_children:
+        type: boolean
+      allow_pets:
+        type: boolean
+      allow_students:
+        type: boolean
+      max_occupants:
+        minimum: 0
+        type: integer
+      min_term_months:
+        minimum: 0
+        type: integer
+    type: object
+  main.UpdateApplicationStatusPayload:
+    properties:
+      status:
+        enum:
+        - new
+        - review
+        - approved
+        - rejected
+        type: string
+    required:
+    - status
+    type: object
+  main.UpdateListingStatusPayload:
+    properties:
+      status:
+        enum:
+        - draft
+        - moderation
+        - active
+        - rejected
+        - archived
+        type: string
+    required:
+    - status
+    type: object
   main.UserWithToken:
     properties:
       company_id:
@@ -144,24 +309,59 @@ definitions:
     required:
     - status
     type: object
-  main.mapObjectEnvelope:
+  store.Application:
     properties:
-      count:
-        type: integer
+      comment:
+        type: string
+      created_at:
+        type: string
+      deal_type:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      has_children:
+        type: boolean
+      has_pets:
+        type: boolean
       id:
         type: integer
-      lat:
-        type: number
-      lng:
-        type: number
-      price:
+      is_compatible:
+        type: boolean
+      is_student:
+        type: boolean
+      listing_id:
         type: integer
-      property_type:
-        type: string
-      rooms:
+      needs_mortgage:
+        type: boolean
+      occupant_count:
         type: integer
-      type:
+      phone:
         type: string
+      purchase_term:
+        type: string
+      status:
+        type: string
+      stay_term_months:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  store.ApplicationMessage:
+    properties:
+      application_id:
+        type: integer
+      body:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      sender_user_id:
+        type: integer
     type: object
   store.Company:
     properties:
@@ -187,6 +387,94 @@ definitions:
       verification_status:
         description: '"pending" | "verified" | "rejected"'
         type: string
+    type: object
+  store.Listing:
+    properties:
+      address:
+        type: string
+      area:
+        type: number
+      city:
+        type: string
+      company_id:
+        type: integer
+      created_at:
+        type: string
+      deal_type:
+        type: string
+      description:
+        type: string
+      floor:
+        type: integer
+      id:
+        type: integer
+      media:
+        items:
+          $ref: '#/definitions/store.ListingMedia'
+        type: array
+      price:
+        type: integer
+      project_id:
+        type: integer
+      property_type:
+        type: string
+      published_at:
+        type: string
+      rent_constraints:
+        $ref: '#/definitions/store.RentConstraints'
+      rooms:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+      total_floors:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  store.ListingMedia:
+    properties:
+      id:
+        type: integer
+      listing_id:
+        type: integer
+      position:
+        type: integer
+      url:
+        type: string
+    type: object
+  store.Project:
+    properties:
+      city:
+        type: string
+      company_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  store.RentConstraints:
+    properties:
+      allow_children:
+        type: boolean
+      allow_pets:
+        type: boolean
+      allow_students:
+        type: boolean
+      listing_id:
+        type: integer
+      max_occupants:
+        type: integer
+      min_term_months:
+        type: integer
     type: object
   store.Role:
     properties:
@@ -344,6 +632,268 @@ paths:
       summary: Verifies or rejects a company
       tags:
       - admin
+  /admin/listings:
+    get:
+      parameters:
+      - description: draft|moderation|active|rejected|archived
+        in: query
+        name: status
+        type: string
+      - description: rent|sale
+        in: query
+        name: deal_type
+        type: string
+      - description: City
+        in: query
+        name: city
+        type: string
+      - description: Property type
+        in: query
+        name: property_type
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Listing'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List listings for moderation
+      tags:
+      - admin
+  /admin/listings/{listingID}/status:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Listing ID
+        in: path
+        name: listingID
+        required: true
+        type: integer
+      - description: Status payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateListingStatusPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Listing'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Update listing status (moderation)
+      tags:
+      - admin
+  /applications:
+    get:
+      description: User sees own apps; company sees apps for its listings
+      parameters:
+      - description: new|review|approved|rejected
+        in: query
+        name: status
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Application'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List applications (my or company)
+      tags:
+      - applications
+  /applications/{applicationID}/messages:
+    get:
+      parameters:
+      - description: Application ID
+        in: path
+        name: applicationID
+        required: true
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.ApplicationMessage'
+            type: array
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List messages for application
+      tags:
+      - applications
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Application ID
+        in: path
+        name: applicationID
+        required: true
+        type: integer
+      - description: Message body
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ApplicationMessagePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.ApplicationMessage'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Send message in application chat
+      tags:
+      - applications
+  /applications/{applicationID}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Application ID
+        in: path
+        name: applicationID
+        required: true
+        type: integer
+      - description: Status payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateApplicationStatusPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Application'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Update application status (company)
+      tags:
+      - applications
   /authentication/admin/token:
     post:
       consumes:
@@ -499,36 +1049,15 @@ paths:
       summary: Healthcheck
       tags:
       - ops
-  /map/objects:
+  /listings:
     get:
-      description: Returns map-ready real estate objects or clusters inside the provided
-        bounding box
+      description: Returns active listings with filters
       parameters:
-      - description: Minimum latitude
+      - description: rent|sale
         in: query
-        name: lat_min
-        required: true
-        type: number
-      - description: Maximum latitude
-        in: query
-        name: lat_max
-        required: true
-        type: number
-      - description: Minimum longitude
-        in: query
-        name: lng_min
-        required: true
-        type: number
-      - description: Maximum longitude
-        in: query
-        name: lng_max
-        required: true
-        type: number
-      - description: Map zoom level
-        in: query
-        name: zoom
-        type: integer
-      - description: City filter (ILIKE)
+        name: deal_type
+        type: string
+      - description: City
         in: query
         name: city
         type: string
@@ -536,19 +1065,37 @@ paths:
         in: query
         name: property_type
         type: string
-      - description: Minimum price
-        format: int64
+      - description: Min price
         in: query
         name: price_min
         type: integer
-      - description: Maximum price
-        format: int64
+      - description: Max price
         in: query
         name: price_max
         type: integer
-      - description: Rooms count
+      - description: Min rooms
         in: query
-        name: rooms
+        name: rooms_min
+        type: integer
+      - description: Max rooms
+        in: query
+        name: rooms_max
+        type: integer
+      - description: Min area
+        in: query
+        name: area_min
+        type: number
+      - description: Max area
+        in: query
+        name: area_max
+        type: number
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
         type: integer
       produces:
       - application/json
@@ -557,7 +1104,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.mapObjectEnvelope'
+              $ref: '#/definitions/store.Listing'
             type: array
         "400":
           description: Bad Request
@@ -565,9 +1112,152 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Map objects within bounding box
+      summary: Public catalog listings
       tags:
-      - map
+      - listings
+    post:
+      consumes:
+      - application/json
+      description: Create listing; defaults to status=moderation
+      parameters:
+      - description: Listing data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateListingPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Listing'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create listing (agency/developer)
+      tags:
+      - listings
+  /listings/{listingID}:
+    get:
+      parameters:
+      - description: Listing ID
+        in: path
+        name: listingID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Listing'
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get listing by ID
+      tags:
+      - listings
+  /listings/{listingID}/applications:
+    post:
+      consumes:
+      - application/json
+      description: Requires authenticated user; checks rent constraints for compatibility
+        flag
+      parameters:
+      - description: Listing ID
+        in: path
+        name: listingID
+        required: true
+        type: integer
+      - description: Application data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateApplicationPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Application'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create application for listing
+      tags:
+      - applications
+  /projects:
+    post:
+      consumes:
+      - application/json
+      description: Developers create a project container for listings
+      parameters:
+      - description: Project data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ProjectPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Project'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create project (developer)
+      tags:
+      - projects
   /users:
     get:
       consumes:
