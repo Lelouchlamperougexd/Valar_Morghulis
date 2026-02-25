@@ -46,6 +46,7 @@ type config struct {
 	auth        authConfig
 	redisCfg    redisConfig
 	rateLimiter ratelimiter.Config
+	cryptoKey   string
 }
 
 type redisConfig struct {
@@ -138,6 +139,8 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/users", func(r chi.Router) {
 			r.Put("/activate/{token}", app.activateUserHandler)
+
+			r.With(app.AuthTokenMiddleware).Get("/", app.getUserByEmailHandler)
 
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.AuthTokenMiddleware)

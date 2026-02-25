@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"net"
 	"net/http"
 	"regexp"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/sikozonpc/social/internal/crypto"
 	"github.com/sikozonpc/social/internal/mailer"
 	"github.com/sikozonpc/social/internal/store"
 )
@@ -210,17 +212,22 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		switch err {
 		case store.ErrNotFound:
+			_ = app.logLoginEvent(r, nil, payload.Email, false)
 			app.unauthorizedErrorResponse(w, r, err)
 		default:
+			_ = app.logLoginEvent(r, nil, payload.Email, false)
 			app.internalServerError(w, r, err)
 		}
 		return
 	}
 
 	if err := user.Password.Compare(payload.Password); err != nil {
+		_ = app.logLoginEvent(r, &user.ID, payload.Email, false)
 		app.unauthorizedErrorResponse(w, r, err)
 		return
 	}
+
+	_ = app.logLoginEvent(r, &user.ID, payload.Email, true)
 
 	claims := jwt.MapClaims{
 		"sub": user.ID,
@@ -240,4 +247,21 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	if err := app.jsonResponse(w, http.StatusCreated, token); err != nil {
 		app.internalServerError(w, r, err)
 	}
+}
+
+func (app *application) logLoginEvent(r *http.Request, userID *int64, email string, success bool) error {
+	ip := r.RemoteAddr
+	if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+		ip = host
+	}
+
+	event := &store.LoginEvent{
+		UserID:    userID,
+		EmailHash: crypto.HashEmail(email),
+		IP:        ip,
+		UserAgent: r.UserAgent(),
+		Success:   success,
+	}
+
+	return app.store.LoginEvents.Create(r.Context(), event)
 }

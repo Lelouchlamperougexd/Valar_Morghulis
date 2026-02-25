@@ -6,8 +6,10 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"strconv"
 	"time"
 
+	"github.com/sikozonpc/social/internal/crypto"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -54,13 +56,41 @@ func (p *password) Compare(text string) error {
 }
 
 type UserStore struct {
-	db *sql.DB
+	db      *sql.DB
+	cryptor *crypto.Service
 }
 
 func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
+	if s.cryptor == nil {
+		return errors.New("encryption service not configured")
+	}
+
+	encryptedEmail, err := s.cryptor.EncryptString(user.Email)
+	if err != nil {
+		return err
+	}
+	encryptedFirstName, err := s.cryptor.EncryptString(user.FirstName)
+	if err != nil {
+		return err
+	}
+	encryptedLastName, err := s.cryptor.EncryptString(user.LastName)
+	if err != nil {
+		return err
+	}
+	encryptedPhone, err := s.cryptor.EncryptString(user.Phone)
+	if err != nil {
+		return err
+	}
+	encryptedPushOptIn, err := s.cryptor.EncryptString(strconv.FormatBool(user.PushOptIn))
+	if err != nil {
+		return err
+	}
+
+	emailHash := crypto.HashEmail(user.Email)
+
 	query := `
-		INSERT INTO users (username, first_name, last_name, country, password, email, phone, push_opt_in, role_id) VALUES
-		($1, $2, $3, $4, $5, $6, $7, $8, (SELECT id FROM roles WHERE name = $9))
+		INSERT INTO users (username, first_name, last_name, country, password, email, phone, push_opt_in, email_hash, role_id) VALUES
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT id FROM roles WHERE name = $10))
     RETURNING id, created_at
 	`
 
@@ -72,17 +102,18 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		role = "user"
 	}
 
-	err := tx.QueryRowContext(
+	err = tx.QueryRowContext(
 		ctx,
 		query,
 		user.Username,
-		user.FirstName,
-		user.LastName,
+		encryptedFirstName,
+		encryptedLastName,
 		user.Country,
 		user.Password.hash,
-		user.Email,
-		user.Phone,
-		user.PushOptIn,
+		encryptedEmail,
+		encryptedPhone,
+		encryptedPushOptIn,
+		emailHash,
 		role,
 	).Scan(
 		&user.ID,
@@ -90,7 +121,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	)
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_hash_key"`:
 			return ErrDuplicateEmail
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
 			return ErrDuplicateUsername
@@ -103,6 +134,10 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 }
 
 func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
+	if s.cryptor == nil {
+		return nil, errors.New("encryption service not configured")
+	}
+
 	query := `
 		SELECT users.id, username, first_name, last_name, country, email, phone, push_opt_in, password, created_at, roles.*
 		FROM users
@@ -114,6 +149,7 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	defer cancel()
 
 	user := &User{}
+	var encryptedEmail, encryptedFirstName, encryptedLastName, encryptedPhone, encryptedPushOptIn string
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -121,12 +157,12 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	).Scan(
 		&user.ID,
 		&user.Username,
-		&user.FirstName,
-		&user.LastName,
+		&encryptedFirstName,
+		&encryptedLastName,
 		&user.Country,
-		&user.Email,
-		&user.Phone,
-		&user.PushOptIn,
+		&encryptedEmail,
+		&encryptedPhone,
+		&encryptedPushOptIn,
 		&user.Password.hash,
 		&user.CreatedAt,
 		&user.Role.ID,
@@ -141,6 +177,18 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		default:
 			return nil, err
 		}
+	}
+
+	user.Email = encryptedEmail
+	user.FirstName = encryptedFirstName
+	user.LastName = encryptedLastName
+	user.Phone = encryptedPhone
+	if err := s.decryptUser(user); err != nil {
+		return nil, err
+	}
+
+	if err := s.decryptPushOptIn(user, encryptedPushOptIn); err != nil {
+		return nil, err
 	}
 
 	return user, nil
@@ -288,19 +336,31 @@ func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, id int64) error {
 }
 
 func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
+	if s.cryptor == nil {
+		return nil, errors.New("encryption service not configured")
+	}
+
+	emailHash := crypto.HashEmail(email)
 	query := `
-		SELECT id, username, email, password, created_at FROM users
-		WHERE email = $1 AND is_active = true
+		SELECT id, username, email, first_name, last_name, country, phone, push_opt_in, password, created_at
+		FROM users
+		WHERE email_hash = $1 AND is_active = true
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	user := &User{}
-	err := s.db.QueryRowContext(ctx, query, email).Scan(
+	var encryptedEmail, encryptedFirstName, encryptedLastName, encryptedPhone, encryptedPushOptIn string
+	err := s.db.QueryRowContext(ctx, query, emailHash).Scan(
 		&user.ID,
 		&user.Username,
-		&user.Email,
+		&encryptedEmail,
+		&encryptedFirstName,
+		&encryptedLastName,
+		&user.Country,
+		&encryptedPhone,
+		&encryptedPushOptIn,
 		&user.Password.hash,
 		&user.CreatedAt,
 	)
@@ -313,5 +373,61 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 		}
 	}
 
+	user.Email = encryptedEmail
+	user.FirstName = encryptedFirstName
+	user.LastName = encryptedLastName
+	user.Phone = encryptedPhone
+	if err := s.decryptUser(user); err != nil {
+		return nil, err
+	}
+
+	if err := s.decryptPushOptIn(user, encryptedPushOptIn); err != nil {
+		return nil, err
+	}
+
 	return user, nil
+}
+
+func (s *UserStore) decryptUser(user *User) error {
+	if user == nil {
+		return nil
+	}
+
+	var err error
+	user.Email, err = s.cryptor.DecryptString(user.Email)
+	if err != nil {
+		return err
+	}
+	user.FirstName, err = s.cryptor.DecryptString(user.FirstName)
+	if err != nil {
+		return err
+	}
+	user.LastName, err = s.cryptor.DecryptString(user.LastName)
+	if err != nil {
+		return err
+	}
+	user.Phone, err = s.cryptor.DecryptString(user.Phone)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserStore) decryptPushOptIn(user *User, encryptedValue string) error {
+	decrypted, err := s.cryptor.DecryptString(encryptedValue)
+	if err != nil {
+		return err
+	}
+	if decrypted == "" {
+		user.PushOptIn = false
+		return nil
+	}
+
+	parsed, err := strconv.ParseBool(decrypted)
+	if err != nil {
+		return err
+	}
+	user.PushOptIn = parsed
+	return nil
 }

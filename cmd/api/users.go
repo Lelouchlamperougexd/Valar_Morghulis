@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -43,6 +44,43 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 			app.internalServerError(w, r, err)
 			return
 		}
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// GetUserByEmail godoc
+//
+//	@Summary		Fetches a user profile
+//	@Description	Fetches a user profile by email
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			email	query		string	true	"User email"
+//	@Success		200	{object}	store.User
+//	@Failure		400	{object}	error
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/users [get]
+func (app *application) getUserByEmailHandler(w http.ResponseWriter, r *http.Request) {
+	email := r.URL.Query().Get("email")
+	if email == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("email query parameter is required"))
+		return
+	}
+
+	user, err := app.store.Users.GetByEmail(r.Context(), email)
+	if err != nil {
+		switch err {
+		case store.ErrNotFound:
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
 	}
 
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {

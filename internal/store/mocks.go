@@ -8,11 +8,12 @@ import (
 
 func NewMockStore() Storage {
 	return Storage{
-		Users: &MockUserStore{},
+		Users:       &MockUserStore{},
+		LoginEvents: &MockLoginEventStore{},
 	}
 }
 
-type MockUserStore struct {}
+type MockUserStore struct{}
 
 func (m *MockUserStore) Create(ctx context.Context, tx *sql.Tx, u *User) error {
 	return nil
@@ -35,5 +36,11 @@ func (m *MockUserStore) Activate(ctx context.Context, t string) error {
 }
 
 func (m *MockUserStore) Delete(ctx context.Context, id int64) error {
+	return nil
+}
+
+type MockLoginEventStore struct{}
+
+func (m *MockLoginEventStore) Create(ctx context.Context, event *LoginEvent) error {
 	return nil
 }

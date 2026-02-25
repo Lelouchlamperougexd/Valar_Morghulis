@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/sikozonpc/social/internal/auth"
+	"github.com/sikozonpc/social/internal/crypto"
 	"github.com/sikozonpc/social/internal/db"
 	"github.com/sikozonpc/social/internal/env"
 	"github.com/sikozonpc/social/internal/mailer"
@@ -14,12 +15,13 @@ import (
 	"github.com/sikozonpc/social/internal/store"
 	"github.com/sikozonpc/social/internal/store/cache"
 	"go.uber.org/zap"
+	"github.com/joho/godotenv"
 )
 
 const version = "1.1.0"
 
 //	@title			Real Estate API
-//	@description	API for Real Estate, a social network for gohpers
+//	@description	API for Real Estate, tool to manage real estate properties and users.
 //	@termsOfService	http://swagger.io/terms/
 
 //	@contact.name	API Support
@@ -36,6 +38,7 @@ const version = "1.1.0"
 // @name						Authorization
 // @description
 func main() {
+	godotenv.Load()
 	cfg := config{
 		addr:        env.GetString("ADDR", ":8080"),
 		apiURL:      env.GetString("EXTERNAL_URL", "localhost:8080"),
@@ -52,7 +55,8 @@ func main() {
 			db:      env.GetInt("REDIS_DB", 0),
 			enabled: env.GetBool("REDIS_ENABLED", false),
 		},
-		env: env.GetString("ENV", "development"),
+		env:       env.GetString("ENV", "development"),
+		cryptoKey: env.GetString("ENCRYPTION_KEY", ""),
 		mail: mailConfig{
 			exp:       time.Hour * 24 * 3, // 3 days
 			fromEmail: env.GetString("FROM_EMAIL", ""),
@@ -92,6 +96,10 @@ func main() {
 	// Logger
 	logger := zap.Must(zap.NewProduction()).Sugar()
 	defer logger.Sync()
+
+	if cfg.cryptoKey == "" {
+		logger.Fatal("ENCRYPTION_KEY is required")
+	}
 
 	// Main Database
 	db, err := db.New(
@@ -159,7 +167,12 @@ func main() {
 		cfg.auth.token.iss,
 	)
 
-	store := store.NewStorage(db)
+	cryptor, err := crypto.NewServiceFromBase64Key(cfg.cryptoKey)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	store := store.NewStorage(db, cryptor)
 	cacheStorage := cache.NewRedisStorage(rdb)
 
 	app := &application{
@@ -184,4 +197,6 @@ func main() {
 	mux := app.mount()
 
 	logger.Fatal(app.run(mux))
+
+	
 }

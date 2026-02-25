@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/sikozonpc/social/internal/crypto"
 )
 
 var (
@@ -37,18 +39,22 @@ type Storage struct {
 		Follow(ctx context.Context, userID, followerID int64) error
 		Unfollow(ctx context.Context, followerID, userID int64) error
 	}
+	LoginEvents interface {
+		Create(ctx context.Context, event *LoginEvent) error
+	}
 	Roles interface {
 		GetByName(context.Context, string) (*Role, error)
 	}
 }
 
-func NewStorage(db *sql.DB) Storage {
+func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 	return Storage{
-		Posts:     &PostStore{db},
-		Users:     &UserStore{db},
-		Comments:  &CommentStore{db},
-		Followers: &FollowerStore{db},
-		Roles:     &RoleStore{db},
+		Posts:       &PostStore{db},
+		Users:       &UserStore{db: db, cryptor: cryptor},
+		Comments:    &CommentStore{db},
+		Followers:   &FollowerStore{db},
+		LoginEvents: &LoginEventStore{db: db},
+		Roles:       &RoleStore{db},
 	}
 }
 
