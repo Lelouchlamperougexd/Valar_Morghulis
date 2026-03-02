@@ -111,7 +111,7 @@ type ApplicationMessagePayload struct {
 //	@Router       /projects [post]
 func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
-	if user.Role.Name != "developer" {
+	if user.Role.Name != store.RoleDeveloper {
 		app.forbiddenResponse(w, r)
 		return
 	}
@@ -125,7 +125,7 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 		app.internalServerError(w, r, err)
 		return
 	}
-	if company.VerificationStatus != "verified" {
+	if company.VerificationStatus != store.VerificationVerified {
 		app.forbiddenResponse(w, r)
 		return
 	}
@@ -175,7 +175,7 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 //	@Router       /listings [post]
 func (app *application) createListingHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
-	if user.Role.Name != "agency" && user.Role.Name != "developer" {
+	if user.Role.Name != store.RoleAgency && user.Role.Name != store.RoleDeveloper {
 		app.forbiddenResponse(w, r)
 		return
 	}
@@ -189,7 +189,7 @@ func (app *application) createListingHandler(w http.ResponseWriter, r *http.Requ
 		app.internalServerError(w, r, err)
 		return
 	}
-	if company.VerificationStatus != "verified" {
+	if company.VerificationStatus != store.VerificationVerified {
 		app.forbiddenResponse(w, r)
 		return
 	}
@@ -243,7 +243,7 @@ func (app *application) createListingHandler(w http.ResponseWriter, r *http.Requ
 		Description:  payload.Description,
 		PropertyType: payload.PropertyType,
 		DealType:     payload.DealType,
-		Status:       "moderation",
+		Status:       store.ListingStatusModeration,
 		Price:        payload.Price,
 		City:         payload.City,
 		Address:      payload.Address,
@@ -293,7 +293,7 @@ func (app *application) listListingsHandler(w http.ResponseWriter, r *http.Reque
 	filter.DealType = qs.Get("deal_type")
 	filter.City = qs.Get("city")
 	filter.PropertyType = qs.Get("property_type")
-	filter.Status = "active"
+	filter.Status = store.ListingStatusActive
 
 	if v := qs.Get("price_min"); v != "" {
 		if parsed, err := strconv.ParseInt(v, 10, 64); err == nil {
@@ -379,8 +379,8 @@ func (app *application) getListingHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	user := getUserFromContext(r)
-	if listing.Status != "active" {
-		if user == nil || (user.Role.Name != "admin" && (user.CompanyID == nil || *user.CompanyID != listing.CompanyID)) {
+	if listing.Status != store.ListingStatusActive {
+		if user == nil || (user.Role.Name != store.RoleAdmin && (user.CompanyID == nil || *user.CompanyID != listing.CompanyID)) {
 			app.notFoundResponse(w, r, store.ErrNotFound)
 			return
 		}
@@ -410,10 +410,6 @@ func (app *application) getListingHandler(w http.ResponseWriter, r *http.Request
 //	@Router       /listings/{listingID}/applications [post]
 func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
-	if user == nil {
-		app.unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized"))
-		return
-	}
 
 	listingID, err := strconv.ParseInt(chi.URLParam(r, "listingID"), 10, 64)
 	if err != nil {
@@ -431,7 +427,7 @@ func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if listing.Status != "active" {
+	if listing.Status != store.ListingStatusActive {
 		app.forbiddenResponse(w, r)
 		return
 	}
@@ -471,7 +467,7 @@ func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.
 		FullName:       payload.FullName,
 		Phone:          payload.Phone,
 		Email:          payload.Email,
-		Status:         "new",
+		Status:         store.ApplicationStatusNew,
 		IsCompatible:   compatible,
 		DealType:       listing.DealType,
 		OccupantCount:  payload.OccupantCount,
@@ -511,10 +507,6 @@ func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.
 //	@Router       /applications [get]
 func (app *application) listApplicationsHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
-	if user == nil {
-		app.unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized"))
-		return
-	}
 	qs := r.URL.Query()
 	filter := store.ApplicationFilter{}
 
@@ -533,7 +525,7 @@ func (app *application) listApplicationsHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// Company dashboard: filter by company_id
-	if user.CompanyID != nil && (user.Role.Name == "agency" || user.Role.Name == "developer") {
+	if user.CompanyID != nil && (user.Role.Name == store.RoleAgency || user.Role.Name == store.RoleDeveloper) {
 		filter.CompanyID = user.CompanyID
 	} else {
 		filter.UserID = &user.ID
@@ -645,10 +637,6 @@ func (app *application) updateApplicationStatusHandler(w http.ResponseWriter, r 
 //	@Router       /applications/{applicationID}/messages [get]
 func (app *application) listApplicationMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
-	if user == nil {
-		app.unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized"))
-		return
-	}
 
 	applicationID, err := strconv.ParseInt(chi.URLParam(r, "applicationID"), 10, 64)
 	if err != nil {
@@ -694,10 +682,6 @@ func (app *application) listApplicationMessagesHandler(w http.ResponseWriter, r 
 //	@Router       /applications/{applicationID}/messages [post]
 func (app *application) createApplicationMessageHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
-	if user == nil {
-		app.unauthorizedErrorResponse(w, r, fmt.Errorf("unauthorized"))
-		return
-	}
 
 	applicationID, err := strconv.ParseInt(chi.URLParam(r, "applicationID"), 10, 64)
 	if err != nil {
@@ -763,7 +747,7 @@ func (app *application) adminListListingsHandler(w http.ResponseWriter, r *http.
 	filter := store.ListingFilter{}
 	filter.Status = qs.Get("status")
 	if filter.Status == "" {
-		filter.Status = "moderation"
+		filter.Status = store.ListingStatusModeration
 	}
 	filter.DealType = qs.Get("deal_type")
 	filter.City = qs.Get("city")
