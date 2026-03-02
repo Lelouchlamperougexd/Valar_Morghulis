@@ -59,6 +59,11 @@ type Storage struct {
 		Create(ctx context.Context, msg *ApplicationMessage) error
 		List(ctx context.Context, applicationID int64, limit, offset int) ([]ApplicationMessage, error)
 	}
+	Invites interface {
+		Create(ctx context.Context, invite *RegistrationInvite) error
+		GetByToken(ctx context.Context, token string) (*RegistrationInvite, error)
+		MarkUsed(ctx context.Context, id int64) error
+	}
 }
 
 func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
@@ -71,6 +76,7 @@ func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 		Listings:     &ListingStore{db: db},
 		Applications: &ApplicationStore{db: db},
 		Messages:     &MessageStore{db: db},
+		Invites:      &InviteStore{db: db},
 	}
 }
 

@@ -43,6 +43,9 @@ type RegisterCompanyPayload struct {
 	// Security
 	Password             string `json:"password" validate:"required,min=8,max=72,password"`
 	PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password"`
+
+	// Optional invite token
+	InviteToken string `json:"invite_token,omitempty"`
 }
 
 type UserWithToken struct {
@@ -386,6 +389,39 @@ func (app *application) registerCompanyHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	ctx := r.Context()
+
+	// Validate invite token if provided
+	var invite *store.RegistrationInvite
+	if payload.InviteToken != "" {
+		var err error
+		invite, err = app.store.Invites.GetByToken(ctx, payload.InviteToken)
+		if err != nil {
+			switch err {
+			case store.ErrInviteNotFound:
+				app.notFoundResponse(w, r, err)
+			default:
+				app.internalServerError(w, r, err)
+			}
+			return
+		}
+
+		if invite.UsedAt != nil {
+			writeJSONError(w, http.StatusGone, store.ErrInviteAlreadyUsed.Error())
+			return
+		}
+
+		if time.Now().After(invite.ExpiresAt) {
+			writeJSONError(w, http.StatusGone, store.ErrInviteExpired.Error())
+			return
+		}
+
+		if invite.CompanyType != payload.CompanyType {
+			app.badRequestResponse(w, r, fmt.Errorf("company_type mismatch: token is for %q", invite.CompanyType))
+			return
+		}
+	}
+
 	company := &store.Company{
 		Name:               payload.CompanyName,
 		RegistrationNumber: payload.RegistrationNumber,
@@ -413,8 +449,6 @@ func (app *application) registerCompanyHandler(w http.ResponseWriter, r *http.Re
 		app.internalServerError(w, r, err)
 		return
 	}
-
-	ctx := r.Context()
 
 	plainToken := uuid.New().String()
 	hash := sha256.Sum256([]byte(plainToken))
@@ -448,6 +482,14 @@ func (app *application) registerCompanyHandler(w http.ResponseWriter, r *http.Re
 	if user.ID == 0 {
 		app.badRequestResponse(w, r, store.ErrDuplicateUsername)
 		return
+	}
+
+	// Mark invite token as used if it was provided
+	if invite != nil {
+		if err := app.store.Invites.MarkUsed(ctx, invite.ID); err != nil {
+			app.internalServerError(w, r, err)
+			return
+		}
 	}
 
 	userWithToken := UserWithToken{

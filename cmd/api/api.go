@@ -181,6 +181,9 @@ func (app *application) mount() http.Handler {
 			r.With(app.AuthTokenMiddleware).Get("/me", app.getCurrentUserHandler)
 		})
 
+		// Public invite validation
+		r.Get("/invites/{token}", app.getInviteHandler)
+
 		// Admin routes
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
@@ -198,6 +201,8 @@ func (app *application) mount() http.Handler {
 				r.Get("/", app.adminListListingsHandler)
 				r.Put("/{listingID}/status", app.adminUpdateListingStatusHandler)
 			})
+
+			r.Post("/invites", app.createInviteHandler)
 		})
 	})
 
