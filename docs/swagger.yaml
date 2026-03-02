@@ -46,6 +46,16 @@ definitions:
     - full_name
     - phone
     type: object
+  main.CreateInvitePayload:
+    properties:
+      company_type:
+        enum:
+        - agency
+        - developer
+        type: string
+    required:
+    - company_type
+    type: object
   main.CreateListingPayload:
     properties:
       address:
@@ -67,6 +77,14 @@ definitions:
         maximum: 200
         minimum: 0
         type: integer
+      latitude:
+        maximum: 90
+        minimum: -90
+        type: number
+      longitude:
+        maximum: 180
+        minimum: -180
+        type: number
       media:
         items:
           $ref: '#/definitions/main.ListingMediaPayload'
@@ -112,6 +130,17 @@ definitions:
     required:
     - email
     - password
+    type: object
+  main.InviteResponse:
+    properties:
+      company_type:
+        type: string
+      expires_at:
+        type: string
+      token:
+        type: string
+      url:
+        type: string
     type: object
   main.ListingMediaPayload:
     properties:
@@ -168,6 +197,9 @@ definitions:
       first_name:
         description: Contact person
         maxLength: 100
+        type: string
+      invite_token:
+        description: Optional invite token
         type: string
       job_title:
         maxLength: 100
@@ -299,6 +331,13 @@ definitions:
       username:
         type: string
     type: object
+  main.ValidateInviteResponse:
+    properties:
+      company_type:
+        type: string
+      valid:
+        type: boolean
+    type: object
   main.VerifyCompanyPayload:
     properties:
       status:
@@ -408,6 +447,10 @@ definitions:
         type: integer
       id:
         type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
       media:
         items:
           $ref: '#/definitions/store.ListingMedia'
@@ -630,6 +673,37 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Verifies or rejects a company
+      tags:
+      - admin
+  /admin/invites:
+    post:
+      consumes:
+      - application/json
+      description: Admin generates an invite link for a specific company type (agency
+        or developer)
+      parameters:
+      - description: Invite details
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateInvitePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Invite created
+          schema:
+            $ref: '#/definitions/main.InviteResponse'
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a registration invite link
       tags:
       - admin
   /admin/listings:
@@ -1049,6 +1123,32 @@ paths:
       summary: Healthcheck
       tags:
       - ops
+  /invites/{token}:
+    get:
+      description: Public endpoint to check if an invite token is valid, not expired,
+        and not used
+      parameters:
+      - description: Invite token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token is valid
+          schema:
+            $ref: '#/definitions/main.ValidateInviteResponse'
+        "404":
+          description: Not Found
+          schema: {}
+        "410":
+          description: Gone
+          schema: {}
+      summary: Validates a registration invite token
+      tags:
+      - invites
   /listings:
     get:
       description: Returns active listings with filters

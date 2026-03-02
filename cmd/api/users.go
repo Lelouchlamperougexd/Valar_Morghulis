@@ -59,10 +59,10 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			email	query		string	true	"User email"
-//	@Success		200	{object}	store.User
-//	@Failure		400	{object}	error
-//	@Failure		404	{object}	error
-//	@Failure		500	{object}	error
+//	@Success		200		{object}	store.User
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
 //	@Security		ApiKeyAuth
 //	@Router			/users [get]
 func (app *application) getUserByEmailHandler(w http.ResponseWriter, r *http.Request) {

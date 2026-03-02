@@ -341,8 +341,8 @@ func (app *application) createAdminTokenHandler(w http.ResponseWriter, r *http.R
 //	@Description	Returns the currently authenticated user's profile
 //	@Tags			authentication
 //	@Produce		json
-//	@Success		200		{object}	store.User
-//	@Failure		401		{object}	error
+//	@Success		200	{object}	store.User
+//	@Failure		401	{object}	error
 //	@Security		ApiKeyAuth
 //	@Router			/authentication/me [get]
 func (app *application) getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {

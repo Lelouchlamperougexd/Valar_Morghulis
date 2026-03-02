@@ -180,6 +180,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/invites": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Admin generates an invite link for a specific company type (agency or developer)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Creates a registration invite link",
+                "parameters": [
+                    {
+                        "description": "Invite details",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateInvitePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Invite created",
+                        "schema": {
+                            "$ref": "#/definitions/main.InviteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/admin/listings": {
             "get": {
                 "security": [
@@ -807,6 +854,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/invites/{token}": {
+            "get": {
+                "description": "Public endpoint to check if an invite token is valid, not expired, and not used",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invites"
+                ],
+                "summary": "Validates a registration invite token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invite token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token is valid",
+                        "schema": {
+                            "$ref": "#/definitions/main.ValidateInviteResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "410": {
+                        "description": "Gone",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/listings": {
             "get": {
                 "description": "Returns active listings with filters",
@@ -1326,6 +1410,21 @@ const docTemplate = `{
                 }
             }
         },
+        "main.CreateInvitePayload": {
+            "type": "object",
+            "required": [
+                "company_type"
+            ],
+            "properties": {
+                "company_type": {
+                    "type": "string",
+                    "enum": [
+                        "agency",
+                        "developer"
+                    ]
+                }
+            }
+        },
         "main.CreateListingPayload": {
             "type": "object",
             "required": [
@@ -1362,6 +1461,16 @@ const docTemplate = `{
                     "type": "integer",
                     "maximum": 200,
                     "minimum": 0
+                },
+                "latitude": {
+                    "type": "number",
+                    "maximum": 90,
+                    "minimum": -90
+                },
+                "longitude": {
+                    "type": "number",
+                    "maximum": 180,
+                    "minimum": -180
                 },
                 "media": {
                     "type": "array",
@@ -1414,6 +1523,23 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 72,
                     "minLength": 3
+                }
+            }
+        },
+        "main.InviteResponse": {
+            "type": "object",
+            "properties": {
+                "company_type": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -1508,6 +1634,10 @@ const docTemplate = `{
                     "description": "Contact person",
                     "type": "string",
                     "maxLength": 100
+                },
+                "invite_token": {
+                    "description": "Optional invite token",
+                    "type": "string"
                 },
                 "job_title": {
                     "type": "string",
@@ -1676,6 +1806,17 @@ const docTemplate = `{
                 }
             }
         },
+        "main.ValidateInviteResponse": {
+            "type": "object",
+            "properties": {
+                "company_type": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
         "main.VerifyCompanyPayload": {
             "type": "object",
             "required": [
@@ -1839,6 +1980,12 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
                 },
                 "media": {
                     "type": "array",

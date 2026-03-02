@@ -96,19 +96,19 @@ type ApplicationMessagePayload struct {
 
 // createProjectHandler godoc
 //
-//	@Summary      Create project (developer)
-//	@Description  Developers create a project container for listings
-//	@Tags         projects
-//	@Accept       json
-//	@Produce      json
-//	@Param        payload  body      ProjectPayload  true  "Project data"
-//	@Success      201      {object}  store.Project
-//	@Failure      400      {object}  error
-//	@Failure      401      {object}  error
-//	@Failure      403      {object}  error
-//	@Failure      500      {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /projects [post]
+//	@Summary		Create project (developer)
+//	@Description	Developers create a project container for listings
+//	@Tags			projects
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		ProjectPayload	true	"Project data"
+//	@Success		201		{object}	store.Project
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		403		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/projects [post]
 func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	if user.Role.Name != store.RoleDeveloper {
@@ -159,20 +159,20 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 
 // createListingHandler godoc
 //
-//	@Summary      Create listing (agency/developer)
-//	@Description  Create listing; defaults to status=moderation
-//	@Tags         listings
-//	@Accept       json
-//	@Produce      json
-//	@Param        payload  body      CreateListingPayload  true  "Listing data"
-//	@Success      201      {object}  store.Listing
-//	@Failure      400      {object}  error
-//	@Failure      401      {object}  error
-//	@Failure      403      {object}  error
-//	@Failure      404      {object}  error
-//	@Failure      500      {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /listings [post]
+//	@Summary		Create listing (agency/developer)
+//	@Description	Create listing; defaults to status=moderation
+//	@Tags			listings
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreateListingPayload	true	"Listing data"
+//	@Success		201		{object}	store.Listing
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		403		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/listings [post]
 func (app *application) createListingHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	if user.Role.Name != store.RoleAgency && user.Role.Name != store.RoleDeveloper {
@@ -267,25 +267,25 @@ func (app *application) createListingHandler(w http.ResponseWriter, r *http.Requ
 
 // listListingsHandler godoc
 //
-//	@Summary      Public catalog listings
-//	@Description  Returns active listings with filters
-//	@Tags         listings
-//	@Produce      json
-//	@Param        deal_type      query     string  false  "rent|sale"
-//	@Param        city           query     string  false  "City"
-//	@Param        property_type  query     string  false  "Property type"
-//	@Param        price_min      query     int     false  "Min price"
-//	@Param        price_max      query     int     false  "Max price"
-//	@Param        rooms_min      query     int     false  "Min rooms"
-//	@Param        rooms_max      query     int     false  "Max rooms"
-//	@Param        area_min       query     number  false  "Min area"
-//	@Param        area_max       query     number  false  "Max area"
-//	@Param        limit          query     int     false  "Limit"
-//	@Param        offset         query     int     false  "Offset"
-//	@Success      200            {array}   store.Listing
-//	@Failure      400            {object}  error
-//	@Failure      500            {object}  error
-//	@Router       /listings [get]
+//	@Summary		Public catalog listings
+//	@Description	Returns active listings with filters
+//	@Tags			listings
+//	@Produce		json
+//	@Param			deal_type		query		string	false	"rent|sale"
+//	@Param			city			query		string	false	"City"
+//	@Param			property_type	query		string	false	"Property type"
+//	@Param			price_min		query		int		false	"Min price"
+//	@Param			price_max		query		int		false	"Max price"
+//	@Param			rooms_min		query		int		false	"Min rooms"
+//	@Param			rooms_max		query		int		false	"Max rooms"
+//	@Param			area_min		query		number	false	"Min area"
+//	@Param			area_max		query		number	false	"Max area"
+//	@Param			limit			query		int		false	"Limit"
+//	@Param			offset			query		int		false	"Offset"
+//	@Success		200				{array}		store.Listing
+//	@Failure		400				{object}	error
+//	@Failure		500				{object}	error
+//	@Router			/listings [get]
 func (app *application) listListingsHandler(w http.ResponseWriter, r *http.Request) {
 	qs := r.URL.Query()
 	filter := store.ListingFilter{}
@@ -353,14 +353,14 @@ func (app *application) listListingsHandler(w http.ResponseWriter, r *http.Reque
 
 // getListingHandler godoc
 //
-//	@Summary      Get listing by ID
-//	@Tags         listings
-//	@Produce      json
-//	@Param        listingID  path      int  true  "Listing ID"
-//	@Success      200        {object}  store.Listing
-//	@Failure      404        {object}  error
-//	@Failure      500        {object}  error
-//	@Router       /listings/{listingID} [get]
+//	@Summary	Get listing by ID
+//	@Tags		listings
+//	@Produce	json
+//	@Param		listingID	path		int	true	"Listing ID"
+//	@Success	200			{object}	store.Listing
+//	@Failure	404			{object}	error
+//	@Failure	500			{object}	error
+//	@Router		/listings/{listingID} [get]
 func (app *application) getListingHandler(w http.ResponseWriter, r *http.Request) {
 	listingID, err := strconv.ParseInt(chi.URLParam(r, "listingID"), 10, 64)
 	if err != nil {
@@ -393,21 +393,21 @@ func (app *application) getListingHandler(w http.ResponseWriter, r *http.Request
 
 // createApplicationHandler godoc
 //
-//	@Summary      Create application for listing
-//	@Description  Requires authenticated user; checks rent constraints for compatibility flag
-//	@Tags         applications
-//	@Accept       json
-//	@Produce      json
-//	@Param        listingID  path      int                      true  "Listing ID"
-//	@Param        payload    body      CreateApplicationPayload true  "Application data"
-//	@Success      201        {object}  store.Application
-//	@Failure      400        {object}  error
-//	@Failure      401        {object}  error
-//	@Failure      403        {object}  error
-//	@Failure      404        {object}  error
-//	@Failure      500        {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /listings/{listingID}/applications [post]
+//	@Summary		Create application for listing
+//	@Description	Requires authenticated user; checks rent constraints for compatibility flag
+//	@Tags			applications
+//	@Accept			json
+//	@Produce		json
+//	@Param			listingID	path		int							true	"Listing ID"
+//	@Param			payload		body		CreateApplicationPayload	true	"Application data"
+//	@Success		201			{object}	store.Application
+//	@Failure		400			{object}	error
+//	@Failure		401			{object}	error
+//	@Failure		403			{object}	error
+//	@Failure		404			{object}	error
+//	@Failure		500			{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/listings/{listingID}/applications [post]
 func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 
@@ -492,19 +492,19 @@ func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.
 
 // listApplicationsHandler godoc
 //
-//	@Summary      List applications (my or company)
-//	@Description  User sees own apps; company sees apps for its listings
-//	@Tags         applications
-//	@Produce      json
-//	@Param        status  query     string  false  "new|review|approved|rejected"
-//	@Param        limit   query     int     false  "Limit"
-//	@Param        offset  query     int     false  "Offset"
-//	@Success      200     {array}   store.Application
-//	@Failure      400     {object}  error
-//	@Failure      401     {object}  error
-//	@Failure      500     {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /applications [get]
+//	@Summary		List applications (my or company)
+//	@Description	User sees own apps; company sees apps for its listings
+//	@Tags			applications
+//	@Produce		json
+//	@Param			status	query		string	false	"new|review|approved|rejected"
+//	@Param			limit	query		int		false	"Limit"
+//	@Param			offset	query		int		false	"Offset"
+//	@Success		200		{array}		store.Application
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/applications [get]
 func (app *application) listApplicationsHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	qs := r.URL.Query()
@@ -548,20 +548,20 @@ func (app *application) listApplicationsHandler(w http.ResponseWriter, r *http.R
 
 // updateApplicationStatusHandler godoc
 //
-//	@Summary      Update application status (company)
-//	@Tags         applications
-//	@Accept       json
-//	@Produce      json
-//	@Param        applicationID  path      int                            true  "Application ID"
-//	@Param        payload        body      UpdateApplicationStatusPayload true  "Status payload"
-//	@Success      200            {object}  store.Application
-//	@Failure      400            {object}  error
-//	@Failure      401            {object}  error
-//	@Failure      403            {object}  error
-//	@Failure      404            {object}  error
-//	@Failure      500            {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /applications/{applicationID}/status [patch]
+//	@Summary	Update application status (company)
+//	@Tags		applications
+//	@Accept		json
+//	@Produce	json
+//	@Param		applicationID	path		int								true	"Application ID"
+//	@Param		payload			body		UpdateApplicationStatusPayload	true	"Status payload"
+//	@Success	200				{object}	store.Application
+//	@Failure	400				{object}	error
+//	@Failure	401				{object}	error
+//	@Failure	403				{object}	error
+//	@Failure	404				{object}	error
+//	@Failure	500				{object}	error
+//	@Security	ApiKeyAuth
+//	@Router		/applications/{applicationID}/status [patch]
 func (app *application) updateApplicationStatusHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	if user == nil || user.CompanyID == nil {
@@ -622,19 +622,19 @@ func (app *application) updateApplicationStatusHandler(w http.ResponseWriter, r 
 
 // listApplicationMessagesHandler godoc
 //
-//	@Summary      List messages for application
-//	@Tags         applications
-//	@Produce      json
-//	@Param        applicationID  path      int   true  "Application ID"
-//	@Param        limit          query     int   false "Limit"
-//	@Param        offset         query     int   false "Offset"
-//	@Success      200            {array}   store.ApplicationMessage
-//	@Failure      401            {object}  error
-//	@Failure      403            {object}  error
-//	@Failure      404            {object}  error
-//	@Failure      500            {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /applications/{applicationID}/messages [get]
+//	@Summary	List messages for application
+//	@Tags		applications
+//	@Produce	json
+//	@Param		applicationID	path		int	true	"Application ID"
+//	@Param		limit			query		int	false	"Limit"
+//	@Param		offset			query		int	false	"Offset"
+//	@Success	200				{array}		store.ApplicationMessage
+//	@Failure	401				{object}	error
+//	@Failure	403				{object}	error
+//	@Failure	404				{object}	error
+//	@Failure	500				{object}	error
+//	@Security	ApiKeyAuth
+//	@Router		/applications/{applicationID}/messages [get]
 func (app *application) listApplicationMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 
@@ -666,20 +666,20 @@ func (app *application) listApplicationMessagesHandler(w http.ResponseWriter, r 
 
 // createApplicationMessageHandler godoc
 //
-//	@Summary      Send message in application chat
-//	@Tags         applications
-//	@Accept       json
-//	@Produce      json
-//	@Param        applicationID  path      int     true  "Application ID"
-//	@Param        payload        body      ApplicationMessagePayload true  "Message body"
-//	@Success      201            {object}  store.ApplicationMessage
-//	@Failure      400            {object}  error
-//	@Failure      401            {object}  error
-//	@Failure      403            {object}  error
-//	@Failure      404            {object}  error
-//	@Failure      500            {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /applications/{applicationID}/messages [post]
+//	@Summary	Send message in application chat
+//	@Tags		applications
+//	@Accept		json
+//	@Produce	json
+//	@Param		applicationID	path		int							true	"Application ID"
+//	@Param		payload			body		ApplicationMessagePayload	true	"Message body"
+//	@Success	201				{object}	store.ApplicationMessage
+//	@Failure	400				{object}	error
+//	@Failure	401				{object}	error
+//	@Failure	403				{object}	error
+//	@Failure	404				{object}	error
+//	@Failure	500				{object}	error
+//	@Security	ApiKeyAuth
+//	@Router		/applications/{applicationID}/messages [post]
 func (app *application) createApplicationMessageHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 
@@ -726,22 +726,22 @@ func (app *application) createApplicationMessageHandler(w http.ResponseWriter, r
 
 // adminListListingsHandler godoc
 //
-//	@Summary      List listings for moderation
-//	@Tags         admin
-//	@Produce      json
-//	@Param        status         query     string  false  "draft|moderation|active|rejected|archived"
-//	@Param        deal_type      query     string  false  "rent|sale"
-//	@Param        city           query     string  false  "City"
-//	@Param        property_type  query     string  false  "Property type"
-//	@Param        limit          query     int     false  "Limit"
-//	@Param        offset         query     int     false  "Offset"
-//	@Success      200            {array}   store.Listing
-//	@Failure      400            {object}  error
-//	@Failure      401            {object}  error
-//	@Failure      403            {object}  error
-//	@Failure      500            {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /admin/listings [get]
+//	@Summary	List listings for moderation
+//	@Tags		admin
+//	@Produce	json
+//	@Param		status			query		string	false	"draft|moderation|active|rejected|archived"
+//	@Param		deal_type		query		string	false	"rent|sale"
+//	@Param		city			query		string	false	"City"
+//	@Param		property_type	query		string	false	"Property type"
+//	@Param		limit			query		int		false	"Limit"
+//	@Param		offset			query		int		false	"Offset"
+//	@Success	200				{array}		store.Listing
+//	@Failure	400				{object}	error
+//	@Failure	401				{object}	error
+//	@Failure	403				{object}	error
+//	@Failure	500				{object}	error
+//	@Security	ApiKeyAuth
+//	@Router		/admin/listings [get]
 func (app *application) adminListListingsHandler(w http.ResponseWriter, r *http.Request) {
 	qs := r.URL.Query()
 	filter := store.ListingFilter{}
@@ -781,20 +781,20 @@ func (app *application) adminListListingsHandler(w http.ResponseWriter, r *http.
 
 // adminUpdateListingStatusHandler godoc
 //
-//	@Summary      Update listing status (moderation)
-//	@Tags         admin
-//	@Accept       json
-//	@Produce      json
-//	@Param        listingID  path      int                         true  "Listing ID"
-//	@Param        payload    body      UpdateListingStatusPayload  true  "Status payload"
-//	@Success      200        {object}  store.Listing
-//	@Failure      400        {object}  error
-//	@Failure      401        {object}  error
-//	@Failure      403        {object}  error
-//	@Failure      404        {object}  error
-//	@Failure      500        {object}  error
-//	@Security     ApiKeyAuth
-//	@Router       /admin/listings/{listingID}/status [put]
+//	@Summary	Update listing status (moderation)
+//	@Tags		admin
+//	@Accept		json
+//	@Produce	json
+//	@Param		listingID	path		int							true	"Listing ID"
+//	@Param		payload		body		UpdateListingStatusPayload	true	"Status payload"
+//	@Success	200			{object}	store.Listing
+//	@Failure	400			{object}	error
+//	@Failure	401			{object}	error
+//	@Failure	403			{object}	error
+//	@Failure	404			{object}	error
+//	@Failure	500			{object}	error
+//	@Security	ApiKeyAuth
+//	@Router		/admin/listings/{listingID}/status [put]
 func (app *application) adminUpdateListingStatusHandler(w http.ResponseWriter, r *http.Request) {
 	listingID, err := strconv.ParseInt(chi.URLParam(r, "listingID"), 10, 64)
 	if err != nil {
