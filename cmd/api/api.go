@@ -129,6 +129,10 @@ func (app *application) mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	// Stricter rate limiter for auth endpoints (5 req / 60s)
+	authLimiter := ratelimiter.NewFixedWindowLimiter(5, time.Minute)
+	authLimiterMiddleware := app.buildRateLimiterMiddleware(authLimiter)
+
 	r.Route("/v1", func(r chi.Router) {
 		// Operations
 		r.Get("/health", app.healthCheckHandler)
@@ -172,9 +176,9 @@ func (app *application) mount() http.Handler {
 
 		// Public routes
 		r.Route("/authentication", func(r chi.Router) {
-			r.Post("/user", app.registerUserHandler)
-			r.Post("/company", app.registerCompanyHandler)
-			r.Post("/token", app.createTokenHandler)
+			r.With(authLimiterMiddleware).Post("/user", app.registerUserHandler)
+			r.With(authLimiterMiddleware).Post("/company", app.registerCompanyHandler)
+			r.With(authLimiterMiddleware).Post("/token", app.createTokenHandler)
 			r.Post("/admin/token", app.createAdminTokenHandler)
 
 			// Protected auth routes
