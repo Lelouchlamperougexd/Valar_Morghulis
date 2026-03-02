@@ -63,7 +63,7 @@ func (m *MockCompanyStore) Create(ctx context.Context, tx *sql.Tx, c *Company) e
 }
 
 func (m *MockCompanyStore) GetByID(ctx context.Context, id int64) (*Company, error) {
-	return &Company{ID: id}, nil
+	return &Company{ID: id, VerificationStatus: VerificationVerified}, nil
 }
 
 func (m *MockCompanyStore) GetByRegistrationNumber(ctx context.Context, regNum string) (*Company, error) {

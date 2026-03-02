@@ -134,7 +134,7 @@ func (app *application) RateLimiterMiddleware(next http.Handler) http.Handler {
 func (app *application) adminOnlyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := getUserFromContext(r)
-		if user.Role.Name != "admin" {
+		if user.Role.Name != store.RoleAdmin {
 			app.forbiddenResponse(w, r)
 			return
 		}

@@ -86,7 +86,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		Email:     payload.Email,
 		Phone:     payload.Phone,
 		Role: store.Role{
-			Name: "user",
+			Name: store.RoleUser,
 		},
 	}
 
@@ -305,7 +305,7 @@ func (app *application) createAdminTokenHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// Only admin and moderator roles are allowed
-	if user.Role.Name != "admin" && user.Role.Name != "moderator" {
+	if user.Role.Name != store.RoleAdmin && user.Role.Name != store.RoleModerator {
 		_ = app.logLoginEvent(r, &user.ID, payload.Email, false)
 		app.forbiddenResponse(w, r)
 		return

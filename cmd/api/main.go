@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/joho/godotenv"
 	"github.com/sikozonpc/social/internal/auth"
 	"github.com/sikozonpc/social/internal/crypto"
 	"github.com/sikozonpc/social/internal/db"
@@ -15,7 +16,6 @@ import (
 	"github.com/sikozonpc/social/internal/store"
 	"github.com/sikozonpc/social/internal/store/cache"
 	"go.uber.org/zap"
-	"github.com/joho/godotenv"
 )
 
 const version = "1.1.0"
@@ -200,5 +200,4 @@ func main() {
 
 	logger.Fatal(app.run(mux))
 
-	
 }
