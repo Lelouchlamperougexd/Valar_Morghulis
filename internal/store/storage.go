@@ -54,6 +54,7 @@ type Storage struct {
 		UpdateStatus(ctx context.Context, id int64, status string) error
 		GetByID(ctx context.Context, id int64) (*Application, error)
 		List(ctx context.Context, filter ApplicationFilter) ([]Application, error)
+		GetByListingAndUser(ctx context.Context, listingID, userID int64) (*Application, error)
 	}
 	Messages interface {
 		Create(ctx context.Context, msg *ApplicationMessage) error
@@ -74,7 +75,7 @@ func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 		Companies:    &CompanyStore{db: db, cryptor: cryptor},
 		Projects:     &ProjectStore{db: db},
 		Listings:     &ListingStore{db: db},
-		Applications: &ApplicationStore{db: db},
+		Applications: &ApplicationStore{db: db, cryptor: cryptor},
 		Messages:     &MessageStore{db: db},
 		Invites:      &InviteStore{db: db},
 	}

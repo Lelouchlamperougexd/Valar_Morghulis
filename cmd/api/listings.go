@@ -44,6 +44,8 @@ type CreateListingPayload struct {
 	TotalFloors  *int                    `json:"total_floors" validate:"omitempty,min=0,max=200"`
 	Media        []ListingMediaPayload   `json:"media" validate:"max=20,dive"`
 	Rent         *RentConstraintsPayload `json:"rent_constraints"`
+	Latitude     *float64                `json:"latitude" validate:"omitempty,min=-90,max=90"`
+	Longitude    *float64                `json:"longitude" validate:"omitempty,min=-180,max=180"`
 }
 
 type ListListingsQuery struct {
@@ -118,6 +120,16 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	company, err := app.store.Companies.GetByID(r.Context(), *user.CompanyID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+	if company.VerificationStatus != "verified" {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
 	var payload ProjectPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequestResponse(w, r, err)
@@ -168,6 +180,16 @@ func (app *application) createListingHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	if user.CompanyID == nil {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	company, err := app.store.Companies.GetByID(r.Context(), *user.CompanyID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+	if company.VerificationStatus != "verified" {
 		app.forbiddenResponse(w, r)
 		return
 	}
@@ -229,6 +251,8 @@ func (app *application) createListingHandler(w http.ResponseWriter, r *http.Requ
 		Area:         payload.Area,
 		Floor:        payload.Floor,
 		TotalFloors:  payload.TotalFloors,
+		Latitude:     payload.Latitude,
+		Longitude:    payload.Longitude,
 	}
 
 	if err := app.store.Listings.Create(r.Context(), listing, media, rent); err != nil {
@@ -412,6 +436,12 @@ func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
+	// Prevent applying to own company's listing
+	if user.CompanyID != nil && *user.CompanyID == listing.CompanyID {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
 	var payload CreateApplicationPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequestResponse(w, r, err)
@@ -419,6 +449,17 @@ func (app *application) createApplicationHandler(w http.ResponseWriter, r *http.
 	}
 	if err := Validate.Struct(payload); err != nil {
 		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// Check for duplicate application
+	_, err = app.store.Applications.GetByListingAndUser(r.Context(), listing.ID, user.ID)
+	if err == nil {
+		app.conflictResponse(w, r, fmt.Errorf("Вы уже подали заявку на этот объект"))
+		return
+	}
+	if err != store.ErrNotFound {
+		app.internalServerError(w, r, err)
 		return
 	}
 

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/sikozonpc/social/internal/crypto"
 )
 
 var ApplicationStatuses = map[string]struct{}{
@@ -63,7 +65,8 @@ func (f *ApplicationFilter) normalize() error {
 
 // ApplicationStore manages applications.
 type ApplicationStore struct {
-	db *sql.DB
+	db      *sql.DB
+	cryptor *crypto.Service
 }
 
 func (s *ApplicationStore) Create(ctx context.Context, a *Application) error {
@@ -72,6 +75,15 @@ func (s *ApplicationStore) Create(ctx context.Context, a *Application) error {
 	}
 	if _, ok := ListingDealTypes[a.DealType]; !ok {
 		return ErrInvalidDealType
+	}
+
+	emailForDB := a.Email
+	if s.cryptor != nil {
+		encrypted, err := s.cryptor.EncryptString(a.Email)
+		if err != nil {
+			return err
+		}
+		emailForDB = encrypted
 	}
 
 	query := `
@@ -128,7 +140,7 @@ func (s *ApplicationStore) Create(ctx context.Context, a *Application) error {
 		a.UserID,
 		a.FullName,
 		a.Phone,
-		a.Email,
+		emailForDB,
 		a.Status,
 		a.IsCompatible,
 		a.DealType,
@@ -244,6 +256,14 @@ func (s *ApplicationStore) GetByID(ctx context.Context, id int64) (*Application,
 	if comment.Valid {
 		v := comment.String
 		a.Comment = &v
+	}
+
+	if s.cryptor != nil {
+		decrypted, err := s.cryptor.DecryptString(a.Email)
+		if err != nil {
+			return nil, err
+		}
+		a.Email = decrypted
 	}
 
 	return &a, nil
@@ -364,6 +384,14 @@ func (s *ApplicationStore) List(ctx context.Context, f ApplicationFilter) ([]App
 			a.Comment = &v
 		}
 
+		if s.cryptor != nil {
+			decrypted, err := s.cryptor.DecryptString(a.Email)
+			if err != nil {
+				return nil, err
+			}
+			a.Email = decrypted
+		}
+
 		apps = append(apps, a)
 	}
 	if err := rows.Err(); err != nil {
@@ -371,4 +399,96 @@ func (s *ApplicationStore) List(ctx context.Context, f ApplicationFilter) ([]App
 	}
 
 	return apps, nil
+}
+
+func (s *ApplicationStore) GetByListingAndUser(ctx context.Context, listingID, userID int64) (*Application, error) {
+	query := `
+		SELECT id, listing_id, user_id, full_name, phone, email, status, is_compatible, deal_type,
+		       occupant_count, has_children, has_pets, is_student, stay_term_months, needs_mortgage, purchase_term, comment,
+		       created_at, updated_at
+		FROM applications
+		WHERE listing_id = $1 AND user_id = $2
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var a Application
+	var occupantCount sql.NullInt32
+	var hasChildren, hasPets, isStudent sql.NullBool
+	var stayTerm sql.NullInt32
+	var needsMortgage sql.NullBool
+	var purchaseTerm sql.NullString
+	var comment sql.NullString
+
+	err := s.db.QueryRowContext(ctx, query, listingID, userID).Scan(
+		&a.ID,
+		&a.ListingID,
+		&a.UserID,
+		&a.FullName,
+		&a.Phone,
+		&a.Email,
+		&a.Status,
+		&a.IsCompatible,
+		&a.DealType,
+		&occupantCount,
+		&hasChildren,
+		&hasPets,
+		&isStudent,
+		&stayTerm,
+		&needsMortgage,
+		&purchaseTerm,
+		&comment,
+		&a.CreatedAt,
+		&a.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	if occupantCount.Valid {
+		v := int(occupantCount.Int32)
+		a.OccupantCount = &v
+	}
+	if hasChildren.Valid {
+		v := hasChildren.Bool
+		a.HasChildren = &v
+	}
+	if hasPets.Valid {
+		v := hasPets.Bool
+		a.HasPets = &v
+	}
+	if isStudent.Valid {
+		v := isStudent.Bool
+		a.IsStudent = &v
+	}
+	if stayTerm.Valid {
+		v := int(stayTerm.Int32)
+		a.StayTermMonths = &v
+	}
+	if needsMortgage.Valid {
+		v := needsMortgage.Bool
+		a.NeedsMortgage = &v
+	}
+	if purchaseTerm.Valid {
+		v := purchaseTerm.String
+		a.PurchaseTerm = &v
+	}
+	if comment.Valid {
+		v := comment.String
+		a.Comment = &v
+	}
+
+	if s.cryptor != nil {
+		decrypted, err := s.cryptor.DecryptString(a.Email)
+		if err != nil {
+			return nil, err
+		}
+		a.Email = decrypted
+	}
+
+	return &a, nil
 }
