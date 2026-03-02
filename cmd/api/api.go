@@ -112,7 +112,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://localhost:5174")},
+		AllowedOrigins:   []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://localhost:5173")},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -179,7 +179,7 @@ func (app *application) mount() http.Handler {
 			r.With(authLimiterMiddleware).Post("/user", app.registerUserHandler)
 			r.With(authLimiterMiddleware).Post("/company", app.registerCompanyHandler)
 			r.With(authLimiterMiddleware).Post("/token", app.createTokenHandler)
-			r.Post("/admin/token", app.createAdminTokenHandler)
+			r.With(authLimiterMiddleware).Post("/admin/token", app.createAdminTokenHandler)
 
 			// Protected auth routes
 			r.With(app.AuthTokenMiddleware).Get("/me", app.getCurrentUserHandler)
