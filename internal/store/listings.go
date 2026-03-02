@@ -40,6 +40,8 @@ type Listing struct {
 	Area            *float64         `json:"area,omitempty"`
 	Floor           *int             `json:"floor,omitempty"`
 	TotalFloors     *int             `json:"total_floors,omitempty"`
+	Latitude        *float64         `json:"latitude,omitempty"`
+	Longitude       *float64         `json:"longitude,omitempty"`
 	Media           []ListingMedia   `json:"media,omitempty"`
 	RentConstraints *RentConstraints `json:"rent_constraints,omitempty"`
 	CreatedAt       string           `json:"created_at"`
@@ -141,8 +143,8 @@ func (s *ListingStore) Create(ctx context.Context, listing *Listing, media []Lis
 	return withTx(s.db, ctx, func(tx *sql.Tx) error {
 		insert := `
             INSERT INTO listings (
-                company_id, project_id, title, description, property_type, deal_type, status, price, city, address, rooms, area, floor, total_floors
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+                company_id, project_id, title, description, property_type, deal_type, status, price, city, address, rooms, area, floor, total_floors, latitude, longitude
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
             RETURNING id, created_at, updated_at, published_at
         `
 
@@ -173,6 +175,17 @@ func (s *ListingStore) Create(ctx context.Context, listing *Listing, media []Lis
 			totalFloors.Int32 = int32(*listing.TotalFloors)
 		}
 
+		var latitude sql.NullFloat64
+		if listing.Latitude != nil {
+			latitude.Valid = true
+			latitude.Float64 = *listing.Latitude
+		}
+		var longitude sql.NullFloat64
+		if listing.Longitude != nil {
+			longitude.Valid = true
+			longitude.Float64 = *listing.Longitude
+		}
+
 		ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 		defer cancel()
 
@@ -191,6 +204,8 @@ func (s *ListingStore) Create(ctx context.Context, listing *Listing, media []Lis
 			area,
 			floor,
 			totalFloors,
+			latitude,
+			longitude,
 		).Scan(&listing.ID, &listing.CreatedAt, &listing.UpdatedAt, &listing.PublishedAt)
 		if err != nil {
 			return err
@@ -263,7 +278,7 @@ func (s *ListingStore) UpdateStatus(ctx context.Context, id int64, status string
 
 func (s *ListingStore) GetByID(ctx context.Context, id int64) (*Listing, error) {
 	query := `
-        SELECT id, company_id, project_id, title, description, property_type, deal_type, status, price, city, address, rooms, area, floor, total_floors, created_at, updated_at, published_at
+        SELECT id, company_id, project_id, title, description, property_type, deal_type, status, price, city, address, rooms, area, floor, total_floors, latitude, longitude, created_at, updated_at, published_at
         FROM listings WHERE id = $1
     `
 
@@ -276,6 +291,8 @@ func (s *ListingStore) GetByID(ctx context.Context, id int64) (*Listing, error) 
 	var area sql.NullFloat64
 	var floor sql.NullInt32
 	var totalFloors sql.NullInt32
+	var latitude sql.NullFloat64
+	var longitude sql.NullFloat64
 	var publishedAt sql.NullString
 
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
@@ -294,6 +311,8 @@ func (s *ListingStore) GetByID(ctx context.Context, id int64) (*Listing, error) 
 		&area,
 		&floor,
 		&totalFloors,
+		&latitude,
+		&longitude,
 		&l.CreatedAt,
 		&l.UpdatedAt,
 		&publishedAt,
@@ -323,6 +342,14 @@ func (s *ListingStore) GetByID(ctx context.Context, id int64) (*Listing, error) 
 	if totalFloors.Valid {
 		v := int(totalFloors.Int32)
 		l.TotalFloors = &v
+	}
+	if latitude.Valid {
+		v := latitude.Float64
+		l.Latitude = &v
+	}
+	if longitude.Valid {
+		v := longitude.Float64
+		l.Longitude = &v
 	}
 	if publishedAt.Valid {
 		v := publishedAt.String
@@ -439,7 +466,7 @@ func (s *ListingStore) List(ctx context.Context, filter ListingFilter) ([]Listin
 	args = append(args, filter.Offset)
 
 	query := fmt.Sprintf(`
-        SELECT id, company_id, project_id, title, description, property_type, deal_type, status, price, city, address, rooms, area, floor, total_floors, created_at, updated_at, published_at
+        SELECT id, company_id, project_id, title, description, property_type, deal_type, status, price, city, address, rooms, area, floor, total_floors, latitude, longitude, created_at, updated_at, published_at
         FROM listings
         WHERE %s
         ORDER BY created_at DESC
@@ -463,6 +490,8 @@ func (s *ListingStore) List(ctx context.Context, filter ListingFilter) ([]Listin
 		var area sql.NullFloat64
 		var floor sql.NullInt32
 		var totalFloors sql.NullInt32
+		var latitude sql.NullFloat64
+		var longitude sql.NullFloat64
 		var publishedAt sql.NullString
 
 		if err := rows.Scan(
@@ -481,6 +510,8 @@ func (s *ListingStore) List(ctx context.Context, filter ListingFilter) ([]Listin
 			&area,
 			&floor,
 			&totalFloors,
+			&latitude,
+			&longitude,
 			&l.CreatedAt,
 			&l.UpdatedAt,
 			&publishedAt,
@@ -506,6 +537,14 @@ func (s *ListingStore) List(ctx context.Context, filter ListingFilter) ([]Listin
 		if totalFloors.Valid {
 			v := int(totalFloors.Int32)
 			l.TotalFloors = &v
+		}
+		if latitude.Valid {
+			v := latitude.Float64
+			l.Latitude = &v
+		}
+		if longitude.Valid {
+			v := longitude.Float64
+			l.Longitude = &v
 		}
 		if publishedAt.Valid {
 			v := publishedAt.String
