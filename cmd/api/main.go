@@ -138,6 +138,8 @@ func main() {
 			logger.Fatal(err)
 		}
 		mailClient = mailtrap
+	} else if cfg.mail.sendGrid.apiKey != "" {
+		mailClient = mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
 	} else if cfg.mail.smtp.host != "" {
 		smtpClient, err := mailer.NewSMTPClient(mailer.SMTPConfig{
 			Host:               cfg.mail.smtp.host,
@@ -154,9 +156,9 @@ func main() {
 		mailClient = smtpClient
 	} else {
 		if cfg.env == "production" {
-			logger.Fatal("MAILTRAP_API_KEY or SMTP_HOST is required in production")
+			logger.Fatal("MAILTRAP_API_KEY, SENDGRID_API_KEY, or SMTP_HOST is required in production")
 		}
-		logger.Warn("MAILTRAP_API_KEY/SMTP_HOST not set; using no-op mailer")
+		logger.Warn("no mailer configured; using no-op mailer")
 		mailClient = mailer.NewNoopClient()
 	}
 
