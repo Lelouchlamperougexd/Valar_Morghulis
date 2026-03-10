@@ -10,8 +10,8 @@ func NewMockStore() Storage {
 	return Storage{
 		Users:        &MockUserStore{},
 		LoginEvents:  &MockLoginEventStore{},
-		Companies:    &MockCompanyStore{},
 		Roles:        &MockRoleStore{},
+		Companies:    &MockCompanyStore{},
 		Projects:     &MockProjectStore{},
 		Listings:     &MockListingStore{},
 		Applications: &MockApplicationStore{},
@@ -19,6 +19,8 @@ func NewMockStore() Storage {
 		Favorites:    &MockFavoriteStore{},
 		Dashboard:    &MockDashboardStore{},
 		Complaints:   &MockComplaintStore{},
+		AdminActions: &MockAdminActionStore{},
+		AdminStats:   &MockAdminStatsStore{},
 		Invites:      &MockInviteStore{},
 	}
 }
@@ -58,6 +60,18 @@ func (m *MockUserStore) UpdateProfile(ctx context.Context, userID int64, firstNa
 }
 
 func (m *MockUserStore) UpdatePassword(ctx context.Context, userID int64, hashedPassword []byte) error {
+	return nil
+}
+
+func (m *MockUserStore) List(ctx context.Context, fq PaginatedQuery) ([]User, error) {
+	return []User{}, nil
+}
+
+func (m *MockUserStore) UpdateStatus(ctx context.Context, userID int64, isActive bool) error {
+	return nil
+}
+
+func (m *MockUserStore) UpdateRole(ctx context.Context, userID int64, roleID int64) error {
 	return nil
 }
 
@@ -166,11 +180,31 @@ func (m *MockInviteStore) Create(ctx context.Context, invite *RegistrationInvite
 }
 
 func (m *MockInviteStore) GetByToken(ctx context.Context, token string) (*RegistrationInvite, error) {
-	return nil, ErrInviteNotFound
+	return &RegistrationInvite{Token: token}, nil
 }
 
 func (m *MockInviteStore) MarkUsed(ctx context.Context, id int64) error {
 	return nil
+}
+
+type MockAdminActionStore struct{}
+
+func (m *MockAdminActionStore) Create(ctx context.Context, action *AdminAction) error {
+	return nil
+}
+
+func (m *MockAdminActionStore) List(ctx context.Context, fq PaginatedQuery) ([]AdminAction, error) {
+	return []AdminAction{}, nil
+}
+
+type MockAdminStatsStore struct{}
+
+func (m *MockAdminStatsStore) GetOverview(ctx context.Context) (*DashboardStats, error) {
+	return &DashboardStats{}, nil
+}
+
+func (m *MockAdminStatsStore) GetActivityChart(ctx context.Context, days int) ([]ActivityChartData, error) {
+	return []ActivityChartData{}, nil
 }
 
 type MockFavoriteStore struct{}

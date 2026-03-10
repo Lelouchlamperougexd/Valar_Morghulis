@@ -207,6 +207,12 @@ func (app *application) adminUpdateComplaintStatusHandler(w http.ResponseWriter,
 		return
 	}
 
+	// Log action
+	adminUser := getUserFromContext(r)
+	if adminUser != nil {
+		app.logAdminAction(adminUser, "update_complaint_status", "complaint", complaintID, payload.Status)
+	}
+
 	complaint, err := app.store.Complaints.GetByID(r.Context(), complaintID)
 	if err != nil {
 		app.internalServerError(w, r, err)

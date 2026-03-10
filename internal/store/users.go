@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -484,6 +485,111 @@ func (s *UserStore) decryptPushOptIn(user *User, encryptedValue string) error {
 		return err
 	}
 	user.PushOptIn = parsed
+	return nil
+}
+
+func (s *UserStore) List(ctx context.Context, fq PaginatedQuery) ([]User, error) {
+	if fq.Limit <= 0 {
+		fq.Limit = 20
+	}
+	if fq.Offset < 0 {
+		fq.Offset = 0
+	}
+
+	var where []string
+	var args []any
+
+	if fq.Search != "" {
+		// We can partial match username, or exact match email_hash
+		searchTerm := "%" + fq.Search + "%"
+		emailHash := crypto.HashEmail(fq.Search)
+		where = append(where, fmt.Sprintf("(u.username ILIKE $%d OR u.email_hash = $%d)", len(args)+1, len(args)+2))
+		args = append(args, searchTerm, emailHash)
+	}
+
+	whereClause := ""
+	if len(where) > 0 {
+		whereClause = "WHERE " + strings.Join(where, " AND ")
+	}
+
+	args = append(args, fq.Limit, fq.Offset)
+
+	query := fmt.Sprintf(`
+		SELECT
+			u.id, u.username, u.first_name, u.last_name, u.email, u.is_active, u.created_at,
+			r.name as role_name
+		FROM users u
+		JOIN roles r ON u.role_id = r.id
+		%s
+		ORDER BY u.created_at DESC
+		LIMIT $%d OFFSET $%d
+	`, whereClause, len(args)-1, len(args))
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var u User
+		var encryptedFirstName, encryptedLastName, encryptedEmail string
+		if err := rows.Scan(
+			&u.ID, &u.Username, &encryptedFirstName, &encryptedLastName, &encryptedEmail,
+			&u.IsActive, &u.CreatedAt, &u.Role.Name,
+		); err != nil {
+			return nil, err
+		}
+
+		u.FirstName, _ = s.cryptor.DecryptString(encryptedFirstName)
+		u.LastName, _ = s.cryptor.DecryptString(encryptedLastName)
+		u.Email, _ = s.cryptor.DecryptString(encryptedEmail)
+
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
+func (s *UserStore) UpdateStatus(ctx context.Context, userID int64, isActive bool) error {
+	query := `UPDATE users SET is_active = $1 WHERE id = $2`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, isActive, userID)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (s *UserStore) UpdateRole(ctx context.Context, userID int64, roleID int64) error {
+	query := `UPDATE users SET role_id = $1 WHERE id = $2`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, roleID, userID)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
 	return nil
 }
 

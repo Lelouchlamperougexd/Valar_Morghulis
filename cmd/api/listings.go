@@ -825,6 +825,18 @@ func (app *application) adminUpdateListingStatusHandler(w http.ResponseWriter, r
 		return
 	}
 
+	// Log action
+	adminUser := getUserFromContext(r)
+	if adminUser != nil {
+		action := "update_listing_status"
+		if payload.Status == store.ListingStatusActive {
+			action = "approve_listing"
+		} else if payload.Status == store.ListingStatusRejected {
+			action = "reject_listing"
+		}
+		app.logAdminAction(adminUser, action, "listing", listingID, payload.Status)
+	}
+
 	listing, _ := app.store.Listings.GetByID(r.Context(), listingID)
 
 	if err := app.jsonResponse(w, http.StatusOK, listing); err != nil {

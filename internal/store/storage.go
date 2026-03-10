@@ -26,6 +26,9 @@ type Storage struct {
 		Delete(context.Context, int64) error
 		UpdateProfile(ctx context.Context, userID int64, firstName, lastName, phone string) error
 		UpdatePassword(ctx context.Context, userID int64, hashedPassword []byte) error
+		List(ctx context.Context, fq PaginatedQuery) ([]User, error)
+		UpdateStatus(ctx context.Context, userID int64, isActive bool) error
+		UpdateRole(ctx context.Context, userID int64, roleID int64) error
 	}
 	LoginEvents interface {
 		Create(ctx context.Context, event *LoginEvent) error
@@ -78,6 +81,14 @@ type Storage struct {
 		List(ctx context.Context, filter ComplaintFilter) ([]Complaint, error)
 		UpdateStatus(ctx context.Context, id int64, status string) error
 	}
+	AdminActions interface {
+		Create(ctx context.Context, action *AdminAction) error
+		List(ctx context.Context, fq PaginatedQuery) ([]AdminAction, error)
+	}
+	AdminStats interface {
+		GetOverview(ctx context.Context) (*DashboardStats, error)
+		GetActivityChart(ctx context.Context, days int) ([]ActivityChartData, error)
+	}
 	Invites interface {
 		Create(ctx context.Context, invite *RegistrationInvite) error
 		GetByToken(ctx context.Context, token string) (*RegistrationInvite, error)
@@ -98,6 +109,8 @@ func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 		Favorites:    &FavoriteStore{db: db},
 		Dashboard:    &DashboardStore{db: db},
 		Complaints:   &ComplaintStore{db: db},
+		AdminActions: &AdminActionStore{db: db},
+		AdminStats:   &AdminStatsStore{db: db},
 		Invites:      &InviteStore{db: db},
 	}
 }

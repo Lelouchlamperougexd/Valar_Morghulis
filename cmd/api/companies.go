@@ -133,6 +133,16 @@ func (app *application) verifyCompanyHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// Log action
+	adminUser := getUserFromContext(r)
+	if adminUser != nil {
+		action := "verify_company"
+		if payload.Status == "rejected" {
+			action = "reject_company"
+		}
+		app.logAdminAction(adminUser, action, "company", companyID, "")
+	}
+
 	// Return the updated company
 	company, err := app.store.Companies.GetByID(r.Context(), companyID)
 	if err != nil {

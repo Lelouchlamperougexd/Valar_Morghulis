@@ -240,6 +240,19 @@ func (app *application) mount() http.Handler {
 				r.Patch("/{complaintID}/status", app.adminUpdateComplaintStatusHandler)
 			})
 
+			r.Route("/users", func(r chi.Router) {
+				r.Get("/", app.adminListUsersHandler)
+				r.Patch("/{userID}/status", app.adminUpdateUserStatusHandler)
+				r.Patch("/{userID}/role", app.adminUpdateUserRoleHandler)
+			})
+
+			r.Route("/stats", func(r chi.Router) {
+				r.Get("/overview", app.adminStatsOverviewHandler)
+				r.Get("/activity", app.adminStatsActivityHandler)
+			})
+
+			r.Get("/logs", app.adminListLogsHandler)
+
 			r.Post("/invites", app.createInviteHandler)
 		})
 	})
