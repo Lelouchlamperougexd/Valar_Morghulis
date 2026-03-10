@@ -24,6 +24,8 @@ type Storage struct {
 		CreateCompanyAndUser(ctx context.Context, company *Company, user *User, token string, exp time.Duration) error
 		Activate(context.Context, string) error
 		Delete(context.Context, int64) error
+		UpdateProfile(ctx context.Context, userID int64, firstName, lastName, phone string) error
+		UpdatePassword(ctx context.Context, userID int64, hashedPassword []byte) error
 	}
 	LoginEvents interface {
 		Create(ctx context.Context, event *LoginEvent) error
@@ -60,6 +62,16 @@ type Storage struct {
 		Create(ctx context.Context, msg *ApplicationMessage) error
 		List(ctx context.Context, applicationID int64, limit, offset int) ([]ApplicationMessage, error)
 	}
+	Favorites interface {
+		Add(ctx context.Context, userID, listingID int64) error
+		Remove(ctx context.Context, userID, listingID int64) error
+		ListByUser(ctx context.Context, userID int64) ([]FavoriteListing, error)
+		Count(ctx context.Context, userID int64) (int, error)
+	}
+	Dashboard interface {
+		GetOverview(ctx context.Context, userID int64) (*DashboardOverview, error)
+		ListChats(ctx context.Context, userID int64) ([]ChatSummary, error)
+	}
 	Invites interface {
 		Create(ctx context.Context, invite *RegistrationInvite) error
 		GetByToken(ctx context.Context, token string) (*RegistrationInvite, error)
@@ -77,6 +89,8 @@ func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 		Listings:     &ListingStore{db: db},
 		Applications: &ApplicationStore{db: db, cryptor: cryptor},
 		Messages:     &MessageStore{db: db},
+		Favorites:    &FavoriteStore{db: db},
+		Dashboard:    &DashboardStore{db: db},
 		Invites:      &InviteStore{db: db},
 	}
 }

@@ -164,6 +164,29 @@ func (app *application) mount() http.Handler {
 			r.With(app.AuthTokenMiddleware).Post("/{listingID}/applications", app.createApplicationHandler)
 		})
 
+		r.Route("/dashboard", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Get("/overview", app.dashboardOverviewHandler)
+		})
+
+		r.Route("/favorites", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Get("/", app.listFavoritesHandler)
+			r.Post("/{listingID}", app.addFavoriteHandler)
+			r.Delete("/{listingID}", app.removeFavoriteHandler)
+		})
+
+		r.Route("/chats", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Get("/", app.listChatsHandler)
+		})
+
+		r.Route("/users/me", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Patch("/", app.updateProfileHandler)
+			r.Put("/password", app.changePasswordHandler)
+		})
+
 		r.Route("/applications", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
 			r.Get("/", app.listApplicationsHandler)

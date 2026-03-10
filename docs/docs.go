@@ -62,7 +62,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/store.Company"
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Company"
                             }
                         }
                     },
@@ -104,7 +104,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.Company"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Company"
                         }
                     },
                     "400": {
@@ -154,7 +154,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.VerifyCompanyPayload"
+                            "$ref": "#/definitions/cmd_api.VerifyCompanyPayload"
                         }
                     }
                 ],
@@ -162,7 +162,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.Company"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Company"
                         }
                     },
                     "400": {
@@ -205,7 +205,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.CreateInvitePayload"
+                            "$ref": "#/definitions/cmd_api.CreateInvitePayload"
                         }
                     }
                 ],
@@ -213,7 +213,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Invite created",
                         "schema": {
-                            "$ref": "#/definitions/main.InviteResponse"
+                            "$ref": "#/definitions/cmd_api.InviteResponse"
                         }
                     },
                     "400": {
@@ -285,7 +285,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/store.Listing"
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
                             }
                         }
                     },
@@ -339,7 +339,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.UpdateListingStatusPayload"
+                            "$ref": "#/definitions/cmd_api.UpdateListingStatusPayload"
                         }
                     }
                 ],
@@ -347,7 +347,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.Listing"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
                         }
                     },
                     "400": {
@@ -414,7 +414,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/store.Application"
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Application"
                             }
                         }
                     },
@@ -474,7 +474,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/store.ApplicationMessage"
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ApplicationMessage"
                             }
                         }
                     },
@@ -526,7 +526,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.ApplicationMessagePayload"
+                            "$ref": "#/definitions/cmd_api.ApplicationMessagePayload"
                         }
                     }
                 ],
@@ -534,7 +534,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/store.ApplicationMessage"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ApplicationMessage"
                         }
                     },
                     "400": {
@@ -591,7 +591,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.UpdateApplicationStatusPayload"
+                            "$ref": "#/definitions/cmd_api.UpdateApplicationStatusPayload"
                         }
                     }
                 ],
@@ -599,7 +599,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.Application"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Application"
                         }
                     },
                     "400": {
@@ -645,7 +645,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                            "$ref": "#/definitions/cmd_api.CreateUserTokenPayload"
                         }
                     }
                 ],
@@ -653,7 +653,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Admin login successful",
                         "schema": {
-                            "$ref": "#/definitions/main.LoginResponse"
+                            "$ref": "#/definitions/cmd_api.LoginResponse"
                         }
                     },
                     "400": {
@@ -695,7 +695,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.RegisterCompanyPayload"
+                            "$ref": "#/definitions/cmd_api.RegisterCompanyPayload"
                         }
                     }
                 ],
@@ -703,7 +703,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Company and user registered",
                         "schema": {
-                            "$ref": "#/definitions/main.UserWithToken"
+                            "$ref": "#/definitions/cmd_api.UserWithToken"
                         }
                     },
                     "400": {
@@ -736,7 +736,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.User"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
                         }
                     },
                     "401": {
@@ -766,7 +766,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                            "$ref": "#/definitions/cmd_api.CreateUserTokenPayload"
                         }
                     }
                 ],
@@ -774,7 +774,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Login successful",
                         "schema": {
-                            "$ref": "#/definitions/main.LoginResponse"
+                            "$ref": "#/definitions/cmd_api.LoginResponse"
                         }
                     },
                     "400": {
@@ -812,7 +812,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.RegisterUserPayload"
+                            "$ref": "#/definitions/cmd_api.RegisterUserPayload"
                         }
                     }
                 ],
@@ -820,11 +820,223 @@ const docTemplate = `{
                     "201": {
                         "description": "User registered",
                         "schema": {
-                            "$ref": "#/definitions/main.UserWithToken"
+                            "$ref": "#/definitions/cmd_api.UserWithToken"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/chats": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a list of chat dialogs grouped by application with last message and unread status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chats"
+                ],
+                "summary": "List chats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ChatSummary"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/dashboard/overview": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns aggregated dashboard data: favorites count, active applications, unread messages, recent listings and applications",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Dashboard overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.DashboardOverview"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/favorites": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all favorite listings for the current user with listing details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "List favorites",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.FavoriteListing"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/favorites/{listingID}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds a listing to the current user's favorites",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Add to favorites",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Listing ID",
+                        "name": "listingID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "listing_id": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Removes a listing from the current user's favorites",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Remove from favorites",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Listing ID",
+                        "name": "listingID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Removed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {}
                     },
                     "500": {
@@ -877,7 +1089,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Token is valid",
                         "schema": {
-                            "$ref": "#/definitions/main.ValidateInviteResponse"
+                            "$ref": "#/definitions/cmd_api.ValidateInviteResponse"
                         }
                     },
                     "404": {
@@ -975,7 +1187,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/store.Listing"
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
                             }
                         }
                     },
@@ -1013,7 +1225,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.CreateListingPayload"
+                            "$ref": "#/definitions/cmd_api.CreateListingPayload"
                         }
                     }
                 ],
@@ -1021,7 +1233,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/store.Listing"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
                         }
                     },
                     "400": {
@@ -1069,7 +1281,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.Listing"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
                         }
                     },
                     "404": {
@@ -1115,7 +1327,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.CreateApplicationPayload"
+                            "$ref": "#/definitions/cmd_api.CreateApplicationPayload"
                         }
                     }
                 ],
@@ -1123,7 +1335,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/store.Application"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Application"
                         }
                     },
                     "400": {
@@ -1174,7 +1386,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.ProjectPayload"
+                            "$ref": "#/definitions/cmd_api.ProjectPayload"
                         }
                     }
                 ],
@@ -1182,7 +1394,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/store.Project"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Project"
                         }
                     },
                     "400": {
@@ -1235,7 +1447,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.User"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
                         }
                     },
                     "400": {
@@ -1295,6 +1507,113 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/me": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Partially updates the current user's profile (first_name, last_name, phone). Only non-empty fields are updated.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update profile",
+                "parameters": [
+                    {
+                        "description": "Profile fields to update",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cmd_api.UpdateProfilePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/users/me/password": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Changes the current user's password after verifying the old password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Change password",
+                "parameters": [
+                    {
+                        "description": "Old and new passwords",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cmd_api.ChangePasswordPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "security": [
@@ -1326,7 +1645,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/store.User"
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
                         }
                     },
                     "400": {
@@ -1346,7 +1665,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "main.ApplicationMessagePayload": {
+        "cmd_api.ApplicationMessagePayload": {
             "type": "object",
             "required": [
                 "body"
@@ -1358,7 +1677,30 @@ const docTemplate = `{
                 }
             }
         },
-        "main.CreateApplicationPayload": {
+        "cmd_api.ChangePasswordPayload": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "new_password_confirmation",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8
+                },
+                "new_password_confirmation": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
+                }
+            }
+        },
+        "cmd_api.CreateApplicationPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -1410,7 +1752,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.CreateInvitePayload": {
+        "cmd_api.CreateInvitePayload": {
             "type": "object",
             "required": [
                 "company_type"
@@ -1425,7 +1767,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.CreateListingPayload": {
+        "cmd_api.CreateListingPayload": {
             "type": "object",
             "required": [
                 "city",
@@ -1476,7 +1818,7 @@ const docTemplate = `{
                     "type": "array",
                     "maxItems": 20,
                     "items": {
-                        "$ref": "#/definitions/main.ListingMediaPayload"
+                        "$ref": "#/definitions/cmd_api.ListingMediaPayload"
                     }
                 },
                 "price": {
@@ -1490,7 +1832,7 @@ const docTemplate = `{
                     "maxLength": 50
                 },
                 "rent_constraints": {
-                    "$ref": "#/definitions/main.RentConstraintsPayload"
+                    "$ref": "#/definitions/cmd_api.RentConstraintsPayload"
                 },
                 "rooms": {
                     "type": "integer",
@@ -1508,7 +1850,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.CreateUserTokenPayload": {
+        "cmd_api.CreateUserTokenPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -1526,7 +1868,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.InviteResponse": {
+        "cmd_api.InviteResponse": {
             "type": "object",
             "properties": {
                 "company_type": {
@@ -1543,7 +1885,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.ListingMediaPayload": {
+        "cmd_api.ListingMediaPayload": {
             "type": "object",
             "required": [
                 "url"
@@ -1558,18 +1900,18 @@ const docTemplate = `{
                 }
             }
         },
-        "main.LoginResponse": {
+        "cmd_api.LoginResponse": {
             "type": "object",
             "properties": {
                 "token": {
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/store.User"
+                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
                 }
             }
         },
-        "main.ProjectPayload": {
+        "cmd_api.ProjectPayload": {
             "type": "object",
             "required": [
                 "city",
@@ -1590,7 +1932,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.RegisterCompanyPayload": {
+        "cmd_api.RegisterCompanyPayload": {
             "type": "object",
             "required": [
                 "city",
@@ -1662,7 +2004,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.RegisterUserPayload": {
+        "cmd_api.RegisterUserPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -1699,7 +2041,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.RentConstraintsPayload": {
+        "cmd_api.RentConstraintsPayload": {
             "type": "object",
             "properties": {
                 "allow_children": {
@@ -1721,7 +2063,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.UpdateApplicationStatusPayload": {
+        "cmd_api.UpdateApplicationStatusPayload": {
             "type": "object",
             "required": [
                 "status"
@@ -1738,7 +2080,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.UpdateListingStatusPayload": {
+        "cmd_api.UpdateListingStatusPayload": {
             "type": "object",
             "required": [
                 "status"
@@ -1756,7 +2098,24 @@ const docTemplate = `{
                 }
             }
         },
-        "main.UserWithToken": {
+        "cmd_api.UpdateProfilePayload": {
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 20
+                }
+            }
+        },
+        "cmd_api.UserWithToken": {
             "type": "object",
             "properties": {
                 "company_id": {
@@ -1793,7 +2152,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "role": {
-                    "$ref": "#/definitions/store.Role"
+                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Role"
                 },
                 "role_id": {
                     "type": "integer"
@@ -1806,7 +2165,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.ValidateInviteResponse": {
+        "cmd_api.ValidateInviteResponse": {
             "type": "object",
             "properties": {
                 "company_type": {
@@ -1817,7 +2176,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.VerifyCompanyPayload": {
+        "cmd_api.VerifyCompanyPayload": {
             "type": "object",
             "required": [
                 "status"
@@ -1832,7 +2191,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.Application": {
+        "github_com_sikozonpc_social_internal_store.Application": {
             "type": "object",
             "properties": {
                 "comment": {
@@ -1894,7 +2253,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.ApplicationMessage": {
+        "github_com_sikozonpc_social_internal_store.ApplicationMessage": {
             "type": "object",
             "properties": {
                 "application_id": {
@@ -1914,7 +2273,50 @@ const docTemplate = `{
                 }
             }
         },
-        "store.Company": {
+        "github_com_sikozonpc_social_internal_store.ApplicationSummary": {
+            "type": "object",
+            "properties": {
+                "company_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "listing_title": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sikozonpc_social_internal_store.ChatSummary": {
+            "type": "object",
+            "properties": {
+                "application_id": {
+                    "type": "integer"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "is_unread": {
+                    "type": "boolean"
+                },
+                "last_message": {
+                    "type": "string"
+                },
+                "last_message_at": {
+                    "type": "string"
+                },
+                "listing_title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sikozonpc_social_internal_store.Company": {
             "type": "object",
             "properties": {
                 "city": {
@@ -1951,7 +2353,59 @@ const docTemplate = `{
                 }
             }
         },
-        "store.Listing": {
+        "github_com_sikozonpc_social_internal_store.DashboardOverview": {
+            "type": "object",
+            "properties": {
+                "active_applications_count": {
+                    "type": "integer"
+                },
+                "favorites_count": {
+                    "type": "integer"
+                },
+                "recent_applications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ApplicationSummary"
+                    }
+                },
+                "recent_listings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.FavoriteListing"
+                    }
+                },
+                "unread_messages_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_sikozonpc_social_internal_store.FavoriteListing": {
+            "type": "object",
+            "properties": {
+                "area": {
+                    "type": "number"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "cover_url": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "listing_id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sikozonpc_social_internal_store.Listing": {
             "type": "object",
             "properties": {
                 "address": {
@@ -1990,7 +2444,7 @@ const docTemplate = `{
                 "media": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/store.ListingMedia"
+                        "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ListingMedia"
                     }
                 },
                 "price": {
@@ -2006,7 +2460,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "rent_constraints": {
-                    "$ref": "#/definitions/store.RentConstraints"
+                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.RentConstraints"
                 },
                 "rooms": {
                     "type": "integer"
@@ -2025,7 +2479,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.ListingMedia": {
+        "github_com_sikozonpc_social_internal_store.ListingMedia": {
             "type": "object",
             "properties": {
                 "id": {
@@ -2042,7 +2496,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.Project": {
+        "github_com_sikozonpc_social_internal_store.Project": {
             "type": "object",
             "properties": {
                 "city": {
@@ -2068,7 +2522,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.RentConstraints": {
+        "github_com_sikozonpc_social_internal_store.RentConstraints": {
             "type": "object",
             "properties": {
                 "allow_children": {
@@ -2091,7 +2545,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.Role": {
+        "github_com_sikozonpc_social_internal_store.Role": {
             "type": "object",
             "properties": {
                 "description": {
@@ -2108,7 +2562,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.User": {
+        "github_com_sikozonpc_social_internal_store.User": {
             "type": "object",
             "properties": {
                 "company_id": {
@@ -2145,7 +2599,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "role": {
-                    "$ref": "#/definitions/store.Role"
+                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Role"
                 },
                 "role_id": {
                     "type": "integer"

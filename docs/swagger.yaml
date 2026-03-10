@@ -1,6 +1,6 @@
 basePath: /v1
 definitions:
-  main.ApplicationMessagePayload:
+  cmd_api.ApplicationMessagePayload:
     properties:
       body:
         maxLength: 5000
@@ -8,7 +8,24 @@ definitions:
     required:
     - body
     type: object
-  main.CreateApplicationPayload:
+  cmd_api.ChangePasswordPayload:
+    properties:
+      new_password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      new_password_confirmation:
+        type: string
+      old_password:
+        maxLength: 72
+        minLength: 3
+        type: string
+    required:
+    - new_password
+    - new_password_confirmation
+    - old_password
+    type: object
+  cmd_api.CreateApplicationPayload:
     properties:
       comment:
         maxLength: 2000
@@ -46,7 +63,7 @@ definitions:
     - full_name
     - phone
     type: object
-  main.CreateInvitePayload:
+  cmd_api.CreateInvitePayload:
     properties:
       company_type:
         enum:
@@ -56,7 +73,7 @@ definitions:
     required:
     - company_type
     type: object
-  main.CreateListingPayload:
+  cmd_api.CreateListingPayload:
     properties:
       address:
         maxLength: 500
@@ -87,7 +104,7 @@ definitions:
         type: number
       media:
         items:
-          $ref: '#/definitions/main.ListingMediaPayload'
+          $ref: '#/definitions/cmd_api.ListingMediaPayload'
         maxItems: 20
         type: array
       price:
@@ -98,7 +115,7 @@ definitions:
         maxLength: 50
         type: string
       rent_constraints:
-        $ref: '#/definitions/main.RentConstraintsPayload'
+        $ref: '#/definitions/cmd_api.RentConstraintsPayload'
       rooms:
         maximum: 20
         minimum: 0
@@ -118,7 +135,7 @@ definitions:
     - property_type
     - title
     type: object
-  main.CreateUserTokenPayload:
+  cmd_api.CreateUserTokenPayload:
     properties:
       email:
         maxLength: 255
@@ -131,7 +148,7 @@ definitions:
     - email
     - password
     type: object
-  main.InviteResponse:
+  cmd_api.InviteResponse:
     properties:
       company_type:
         type: string
@@ -142,7 +159,7 @@ definitions:
       url:
         type: string
     type: object
-  main.ListingMediaPayload:
+  cmd_api.ListingMediaPayload:
     properties:
       position:
         minimum: 0
@@ -152,14 +169,14 @@ definitions:
     required:
     - url
     type: object
-  main.LoginResponse:
+  cmd_api.LoginResponse:
     properties:
       token:
         type: string
       user:
-        $ref: '#/definitions/store.User'
+        $ref: '#/definitions/github_com_sikozonpc_social_internal_store.User'
     type: object
-  main.ProjectPayload:
+  cmd_api.ProjectPayload:
     properties:
       city:
         maxLength: 100
@@ -174,7 +191,7 @@ definitions:
     - city
     - name
     type: object
-  main.RegisterCompanyPayload:
+  cmd_api.RegisterCompanyPayload:
     properties:
       city:
         maxLength: 100
@@ -230,7 +247,7 @@ definitions:
     - password_confirmation
     - registration_number
     type: object
-  main.RegisterUserPayload:
+  cmd_api.RegisterUserPayload:
     properties:
       email:
         maxLength: 255
@@ -258,7 +275,7 @@ definitions:
     - password_confirmation
     - phone
     type: object
-  main.RentConstraintsPayload:
+  cmd_api.RentConstraintsPayload:
     properties:
       allow_children:
         type: boolean
@@ -273,7 +290,7 @@ definitions:
         minimum: 0
         type: integer
     type: object
-  main.UpdateApplicationStatusPayload:
+  cmd_api.UpdateApplicationStatusPayload:
     properties:
       status:
         enum:
@@ -285,7 +302,7 @@ definitions:
     required:
     - status
     type: object
-  main.UpdateListingStatusPayload:
+  cmd_api.UpdateListingStatusPayload:
     properties:
       status:
         enum:
@@ -298,7 +315,19 @@ definitions:
     required:
     - status
     type: object
-  main.UserWithToken:
+  cmd_api.UpdateProfilePayload:
+    properties:
+      first_name:
+        maxLength: 100
+        type: string
+      last_name:
+        maxLength: 100
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+    type: object
+  cmd_api.UserWithToken:
     properties:
       company_id:
         type: integer
@@ -323,7 +352,7 @@ definitions:
       push_opt_in:
         type: boolean
       role:
-        $ref: '#/definitions/store.Role'
+        $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Role'
       role_id:
         type: integer
       token:
@@ -331,14 +360,14 @@ definitions:
       username:
         type: string
     type: object
-  main.ValidateInviteResponse:
+  cmd_api.ValidateInviteResponse:
     properties:
       company_type:
         type: string
       valid:
         type: boolean
     type: object
-  main.VerifyCompanyPayload:
+  cmd_api.VerifyCompanyPayload:
     properties:
       status:
         enum:
@@ -348,7 +377,7 @@ definitions:
     required:
     - status
     type: object
-  store.Application:
+  github_com_sikozonpc_social_internal_store.Application:
     properties:
       comment:
         type: string
@@ -389,7 +418,7 @@ definitions:
       user_id:
         type: integer
     type: object
-  store.ApplicationMessage:
+  github_com_sikozonpc_social_internal_store.ApplicationMessage:
     properties:
       application_id:
         type: integer
@@ -402,7 +431,35 @@ definitions:
       sender_user_id:
         type: integer
     type: object
-  store.Company:
+  github_com_sikozonpc_social_internal_store.ApplicationSummary:
+    properties:
+      company_name:
+        type: string
+      id:
+        type: integer
+      listing_title:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_sikozonpc_social_internal_store.ChatSummary:
+    properties:
+      application_id:
+        type: integer
+      company_name:
+        type: string
+      is_unread:
+        type: boolean
+      last_message:
+        type: string
+      last_message_at:
+        type: string
+      listing_title:
+        type: string
+    type: object
+  github_com_sikozonpc_social_internal_store.Company:
     properties:
       city:
         type: string
@@ -427,7 +484,41 @@ definitions:
         description: '"pending" | "verified" | "rejected"'
         type: string
     type: object
-  store.Listing:
+  github_com_sikozonpc_social_internal_store.DashboardOverview:
+    properties:
+      active_applications_count:
+        type: integer
+      favorites_count:
+        type: integer
+      recent_applications:
+        items:
+          $ref: '#/definitions/github_com_sikozonpc_social_internal_store.ApplicationSummary'
+        type: array
+      recent_listings:
+        items:
+          $ref: '#/definitions/github_com_sikozonpc_social_internal_store.FavoriteListing'
+        type: array
+      unread_messages_count:
+        type: integer
+    type: object
+  github_com_sikozonpc_social_internal_store.FavoriteListing:
+    properties:
+      area:
+        type: number
+      city:
+        type: string
+      cover_url:
+        type: string
+      created_at:
+        type: string
+      listing_id:
+        type: integer
+      price:
+        type: integer
+      title:
+        type: string
+    type: object
+  github_com_sikozonpc_social_internal_store.Listing:
     properties:
       address:
         type: string
@@ -453,7 +544,7 @@ definitions:
         type: number
       media:
         items:
-          $ref: '#/definitions/store.ListingMedia'
+          $ref: '#/definitions/github_com_sikozonpc_social_internal_store.ListingMedia'
         type: array
       price:
         type: integer
@@ -464,7 +555,7 @@ definitions:
       published_at:
         type: string
       rent_constraints:
-        $ref: '#/definitions/store.RentConstraints'
+        $ref: '#/definitions/github_com_sikozonpc_social_internal_store.RentConstraints'
       rooms:
         type: integer
       status:
@@ -476,7 +567,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  store.ListingMedia:
+  github_com_sikozonpc_social_internal_store.ListingMedia:
     properties:
       id:
         type: integer
@@ -487,7 +578,7 @@ definitions:
       url:
         type: string
     type: object
-  store.Project:
+  github_com_sikozonpc_social_internal_store.Project:
     properties:
       city:
         type: string
@@ -504,7 +595,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  store.RentConstraints:
+  github_com_sikozonpc_social_internal_store.RentConstraints:
     properties:
       allow_children:
         type: boolean
@@ -519,7 +610,7 @@ definitions:
       min_term_months:
         type: integer
     type: object
-  store.Role:
+  github_com_sikozonpc_social_internal_store.Role:
     properties:
       description:
         type: string
@@ -530,7 +621,7 @@ definitions:
       name:
         type: string
     type: object
-  store.User:
+  github_com_sikozonpc_social_internal_store.User:
     properties:
       company_id:
         type: integer
@@ -555,7 +646,7 @@ definitions:
       push_opt_in:
         type: boolean
       role:
-        $ref: '#/definitions/store.Role'
+        $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Role'
       role_id:
         type: integer
       username:
@@ -594,7 +685,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/store.Company'
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Company'
             type: array
         "500":
           description: Internal Server Error
@@ -621,7 +712,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.Company'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Company'
         "400":
           description: Bad Request
           schema: {}
@@ -653,14 +744,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.VerifyCompanyPayload'
+          $ref: '#/definitions/cmd_api.VerifyCompanyPayload'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.Company'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Company'
         "400":
           description: Bad Request
           schema: {}
@@ -687,14 +778,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.CreateInvitePayload'
+          $ref: '#/definitions/cmd_api.CreateInvitePayload'
       produces:
       - application/json
       responses:
         "201":
           description: Invite created
           schema:
-            $ref: '#/definitions/main.InviteResponse'
+            $ref: '#/definitions/cmd_api.InviteResponse'
         "400":
           description: Bad Request
           schema: {}
@@ -740,7 +831,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/store.Listing'
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Listing'
             type: array
         "400":
           description: Bad Request
@@ -774,14 +865,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.UpdateListingStatusPayload'
+          $ref: '#/definitions/cmd_api.UpdateListingStatusPayload'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.Listing'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Listing'
         "400":
           description: Bad Request
           schema: {}
@@ -825,7 +916,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/store.Application'
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Application'
             type: array
         "400":
           description: Bad Request
@@ -864,7 +955,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/store.ApplicationMessage'
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.ApplicationMessage'
             type: array
         "401":
           description: Unauthorized
@@ -897,14 +988,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.ApplicationMessagePayload'
+          $ref: '#/definitions/cmd_api.ApplicationMessagePayload'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/store.ApplicationMessage'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.ApplicationMessage'
         "400":
           description: Bad Request
           schema: {}
@@ -940,14 +1031,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.UpdateApplicationStatusPayload'
+          $ref: '#/definitions/cmd_api.UpdateApplicationStatusPayload'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.Application'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Application'
         "400":
           description: Bad Request
           schema: {}
@@ -980,14 +1071,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.CreateUserTokenPayload'
+          $ref: '#/definitions/cmd_api.CreateUserTokenPayload'
       produces:
       - application/json
       responses:
         "200":
           description: Admin login successful
           schema:
-            $ref: '#/definitions/main.LoginResponse'
+            $ref: '#/definitions/cmd_api.LoginResponse'
         "400":
           description: Bad Request
           schema: {}
@@ -1015,14 +1106,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.RegisterCompanyPayload'
+          $ref: '#/definitions/cmd_api.RegisterCompanyPayload'
       produces:
       - application/json
       responses:
         "201":
           description: Company and user registered
           schema:
-            $ref: '#/definitions/main.UserWithToken'
+            $ref: '#/definitions/cmd_api.UserWithToken'
         "400":
           description: Bad Request
           schema: {}
@@ -1041,7 +1132,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.User'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.User'
         "401":
           description: Unauthorized
           schema: {}
@@ -1062,14 +1153,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.CreateUserTokenPayload'
+          $ref: '#/definitions/cmd_api.CreateUserTokenPayload'
       produces:
       - application/json
       responses:
         "200":
           description: Login successful
           schema:
-            $ref: '#/definitions/main.LoginResponse'
+            $ref: '#/definitions/cmd_api.LoginResponse'
         "400":
           description: Bad Request
           schema: {}
@@ -1093,14 +1184,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.RegisterUserPayload'
+          $ref: '#/definitions/cmd_api.RegisterUserPayload'
       produces:
       - application/json
       responses:
         "201":
           description: User registered
           schema:
-            $ref: '#/definitions/main.UserWithToken'
+            $ref: '#/definitions/cmd_api.UserWithToken'
         "400":
           description: Bad Request
           schema: {}
@@ -1110,6 +1201,147 @@ paths:
       summary: Registers a user
       tags:
       - authentication
+  /chats:
+    get:
+      description: Returns a list of chat dialogs grouped by application with last
+        message and unread status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.ChatSummary'
+            type: array
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List chats
+      tags:
+      - chats
+  /dashboard/overview:
+    get:
+      description: 'Returns aggregated dashboard data: favorites count, active applications,
+        unread messages, recent listings and applications'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.DashboardOverview'
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Dashboard overview
+      tags:
+      - dashboard
+  /favorites:
+    get:
+      description: Returns all favorite listings for the current user with listing
+        details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.FavoriteListing'
+            type: array
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List favorites
+      tags:
+      - favorites
+  /favorites/{listingID}:
+    delete:
+      description: Removes a listing from the current user's favorites
+      parameters:
+      - description: Listing ID
+        in: path
+        name: listingID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Removed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Remove from favorites
+      tags:
+      - favorites
+    post:
+      description: Adds a listing to the current user's favorites
+      parameters:
+      - description: Listing ID
+        in: path
+        name: listingID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              listing_id:
+                type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Add to favorites
+      tags:
+      - favorites
   /health:
     get:
       description: Healthcheck endpoint
@@ -1139,7 +1371,7 @@ paths:
         "200":
           description: Token is valid
           schema:
-            $ref: '#/definitions/main.ValidateInviteResponse'
+            $ref: '#/definitions/cmd_api.ValidateInviteResponse'
         "404":
           description: Not Found
           schema: {}
@@ -1204,7 +1436,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/store.Listing'
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Listing'
             type: array
         "400":
           description: Bad Request
@@ -1225,14 +1457,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.CreateListingPayload'
+          $ref: '#/definitions/cmd_api.CreateListingPayload'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/store.Listing'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Listing'
         "400":
           description: Bad Request
           schema: {}
@@ -1267,7 +1499,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.Listing'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Listing'
         "404":
           description: Not Found
           schema: {}
@@ -1294,14 +1526,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.CreateApplicationPayload'
+          $ref: '#/definitions/cmd_api.CreateApplicationPayload'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/store.Application'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Application'
         "400":
           description: Bad Request
           schema: {}
@@ -1333,14 +1565,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.ProjectPayload'
+          $ref: '#/definitions/cmd_api.ProjectPayload'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/store.Project'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Project'
         "400":
           description: Bad Request
           schema: {}
@@ -1375,7 +1607,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.User'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.User'
         "400":
           description: Bad Request
           schema: {}
@@ -1407,7 +1639,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/store.User'
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.User'
         "400":
           description: Bad Request
           schema: {}
@@ -1447,6 +1679,76 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Activates/Register a user
+      tags:
+      - users
+  /users/me:
+    patch:
+      consumes:
+      - application/json
+      description: Partially updates the current user's profile (first_name, last_name,
+        phone). Only non-empty fields are updated.
+      parameters:
+      - description: Profile fields to update
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cmd_api.UpdateProfilePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Update profile
+      tags:
+      - users
+  /users/me/password:
+    put:
+      consumes:
+      - application/json
+      description: Changes the current user's password after verifying the old password
+      parameters:
+      - description: Old and new passwords
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cmd_api.ChangePasswordPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Change password
       tags:
       - users
 securityDefinitions:

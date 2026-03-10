@@ -16,6 +16,8 @@ func NewMockStore() Storage {
 		Listings:     &MockListingStore{},
 		Applications: &MockApplicationStore{},
 		Messages:     &MockMessageStore{},
+		Favorites:    &MockFavoriteStore{},
+		Dashboard:    &MockDashboardStore{},
 		Invites:      &MockInviteStore{},
 	}
 }
@@ -47,6 +49,14 @@ func (m *MockUserStore) Activate(ctx context.Context, t string) error {
 }
 
 func (m *MockUserStore) Delete(ctx context.Context, id int64) error {
+	return nil
+}
+
+func (m *MockUserStore) UpdateProfile(ctx context.Context, userID int64, firstName, lastName, phone string) error {
+	return nil
+}
+
+func (m *MockUserStore) UpdatePassword(ctx context.Context, userID int64, hashedPassword []byte) error {
 	return nil
 }
 
@@ -160,4 +170,35 @@ func (m *MockInviteStore) GetByToken(ctx context.Context, token string) (*Regist
 
 func (m *MockInviteStore) MarkUsed(ctx context.Context, id int64) error {
 	return nil
+}
+
+type MockFavoriteStore struct{}
+
+func (m *MockFavoriteStore) Add(ctx context.Context, userID, listingID int64) error {
+	return nil
+}
+
+func (m *MockFavoriteStore) Remove(ctx context.Context, userID, listingID int64) error {
+	return nil
+}
+
+func (m *MockFavoriteStore) ListByUser(ctx context.Context, userID int64) ([]FavoriteListing, error) {
+	return []FavoriteListing{}, nil
+}
+
+func (m *MockFavoriteStore) Count(ctx context.Context, userID int64) (int, error) {
+	return 0, nil
+}
+
+type MockDashboardStore struct{}
+
+func (m *MockDashboardStore) GetOverview(ctx context.Context, userID int64) (*DashboardOverview, error) {
+	return &DashboardOverview{
+		RecentListings:     []FavoriteListing{},
+		RecentApplications: []ApplicationSummary{},
+	}, nil
+}
+
+func (m *MockDashboardStore) ListChats(ctx context.Context, userID int64) ([]ChatSummary, error) {
+	return []ChatSummary{}, nil
 }

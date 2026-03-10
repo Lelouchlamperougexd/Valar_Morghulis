@@ -1,0 +1,3 @@
+ALTER TABLE application_messages
+  ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS read_by_user_id bigint REFERENCES users(id) ON DELETE SET NULL;

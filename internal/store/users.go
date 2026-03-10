@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/sikozonpc/social/internal/crypto"
@@ -55,6 +56,10 @@ func (p *password) Set(text string) error {
 
 func (p *password) Compare(text string) error {
 	return bcrypt.CompareHashAndPassword(p.hash, []byte(text))
+}
+
+func (p *password) GetHash() []byte {
+	return p.hash
 }
 
 type UserStore struct {
@@ -479,5 +484,92 @@ func (s *UserStore) decryptPushOptIn(user *User, encryptedValue string) error {
 		return err
 	}
 	user.PushOptIn = parsed
+	return nil
+}
+
+func (s *UserStore) UpdateProfile(ctx context.Context, userID int64, firstName, lastName, phone string) error {
+	if s.cryptor == nil {
+		return errors.New("encryption service not configured")
+	}
+
+	var setClauses []string
+	var args []interface{}
+	argIdx := 1
+
+	if firstName != "" {
+		encrypted, err := s.cryptor.EncryptString(firstName)
+		if err != nil {
+			return err
+		}
+		setClauses = append(setClauses, "first_name = $"+strconv.Itoa(argIdx))
+		args = append(args, encrypted)
+		argIdx++
+	}
+
+	if lastName != "" {
+		encrypted, err := s.cryptor.EncryptString(lastName)
+		if err != nil {
+			return err
+		}
+		setClauses = append(setClauses, "last_name = $"+strconv.Itoa(argIdx))
+		args = append(args, encrypted)
+		argIdx++
+	}
+
+	if phone != "" {
+		encrypted, err := s.cryptor.EncryptString(phone)
+		if err != nil {
+			return err
+		}
+		setClauses = append(setClauses, "phone = $"+strconv.Itoa(argIdx))
+		args = append(args, encrypted)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return nil // nothing to update
+	}
+
+	query := "UPDATE users SET " + strings.Join(setClauses, ", ") + " WHERE id = $" + strconv.Itoa(argIdx)
+	args = append(args, userID)
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (s *UserStore) UpdatePassword(ctx context.Context, userID int64, hashedPassword []byte) error {
+	query := `UPDATE users SET password = $1 WHERE id = $2`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, query, hashedPassword, userID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+
 	return nil
 }
