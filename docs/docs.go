@@ -180,6 +180,166 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/complaints": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a paginated list of complaints, optionally filtered by status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "List complaints",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by status: new, in_progress, closed",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/admin/complaints/{complaintID}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a single complaint with target name and author info",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get complaint by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Complaint ID",
+                        "name": "complaintID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/admin/complaints/{complaintID}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Admin changes the status of a complaint",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Update complaint status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Complaint ID",
+                        "name": "complaintID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New status",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cmd_api.UpdateComplaintStatusPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/admin/invites": {
             "post": {
                 "security": [
@@ -861,6 +1021,61 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/complaints": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "User submits a complaint about a listing or company",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "complaints"
+                ],
+                "summary": "Create a complaint",
+                "parameters": [
+                    {
+                        "description": "Complaint data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cmd_api.CreateComplaintPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {}
                     },
                     "500": {
@@ -1752,6 +1967,39 @@ const docTemplate = `{
                 }
             }
         },
+        "cmd_api.CreateComplaintPayload": {
+            "type": "object",
+            "required": [
+                "description",
+                "target_id",
+                "target_type",
+                "type"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "target_id": {
+                    "type": "integer"
+                },
+                "target_type": {
+                    "type": "string",
+                    "enum": [
+                        "listing",
+                        "company"
+                    ]
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "incorrect_listing",
+                        "rule_violation",
+                        "fraud"
+                    ]
+                }
+            }
+        },
         "cmd_api.CreateInvitePayload": {
             "type": "object",
             "required": [
@@ -2080,6 +2328,22 @@ const docTemplate = `{
                 }
             }
         },
+        "cmd_api.UpdateComplaintStatusPayload": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "new",
+                        "in_progress",
+                        "closed"
+                    ]
+                }
+            }
+        },
         "cmd_api.UpdateListingStatusPayload": {
             "type": "object",
             "required": [
@@ -2353,6 +2617,49 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_sikozonpc_social_internal_store.Complaint": {
+            "type": "object",
+            "properties": {
+                "author_name": {
+                    "description": "joined from users.username",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "\"new\", \"in_progress\", \"closed\"",
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "integer"
+                },
+                "target_name": {
+                    "description": "joined from listings.title or companies.name",
+                    "type": "string"
+                },
+                "target_type": {
+                    "description": "\"listing\" | \"company\"",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "\"incorrect_listing\", \"rule_violation\", \"fraud\"",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_sikozonpc_social_internal_store.DashboardOverview": {
             "type": "object",
             "properties": {
@@ -2419,6 +2726,9 @@ const docTemplate = `{
                 },
                 "company_id": {
                     "type": "integer"
+                },
+                "company_name": {
+                    "type": "string"
                 },
                 "created_at": {
                     "type": "string"

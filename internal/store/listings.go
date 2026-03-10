@@ -27,6 +27,7 @@ var (
 type Listing struct {
 	ID              int64            `json:"id"`
 	CompanyID       int64            `json:"company_id"`
+	CompanyName     string           `json:"company_name,omitempty"`
 	ProjectID       *int64           `json:"project_id,omitempty"`
 	Title           string           `json:"title"`
 	Description     string           `json:"description"`
@@ -417,48 +418,48 @@ func (s *ListingStore) List(ctx context.Context, filter ListingFilter) ([]Listin
 	var where []string
 	var args []any
 
-	where = append(where, "status = $1")
+	where = append(where, "l.status = $1")
 	args = append(args, filter.Status)
 
 	if filter.DealType != "" {
 		args = append(args, filter.DealType)
-		where = append(where, fmt.Sprintf("deal_type = $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.deal_type = $%d", len(args)))
 	}
 	if filter.City != "" {
 		args = append(args, filter.City)
-		where = append(where, fmt.Sprintf("city = $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.city = $%d", len(args)))
 	}
 	if filter.PropertyType != "" {
 		args = append(args, filter.PropertyType)
-		where = append(where, fmt.Sprintf("property_type = $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.property_type = $%d", len(args)))
 	}
 	if filter.PriceMin > 0 {
 		args = append(args, filter.PriceMin)
-		where = append(where, fmt.Sprintf("price >= $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.price >= $%d", len(args)))
 	}
 	if filter.PriceMax > 0 {
 		args = append(args, filter.PriceMax)
-		where = append(where, fmt.Sprintf("price <= $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.price <= $%d", len(args)))
 	}
 	if filter.RoomsMin > 0 {
 		args = append(args, filter.RoomsMin)
-		where = append(where, fmt.Sprintf("rooms >= $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.rooms >= $%d", len(args)))
 	}
 	if filter.RoomsMax > 0 {
 		args = append(args, filter.RoomsMax)
-		where = append(where, fmt.Sprintf("rooms <= $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.rooms <= $%d", len(args)))
 	}
 	if filter.AreaMin > 0 {
 		args = append(args, filter.AreaMin)
-		where = append(where, fmt.Sprintf("area >= $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.area >= $%d", len(args)))
 	}
 	if filter.AreaMax > 0 {
 		args = append(args, filter.AreaMax)
-		where = append(where, fmt.Sprintf("area <= $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.area <= $%d", len(args)))
 	}
 	if filter.CompanyID != nil {
 		args = append(args, *filter.CompanyID)
-		where = append(where, fmt.Sprintf("company_id = $%d", len(args)))
+		where = append(where, fmt.Sprintf("l.company_id = $%d", len(args)))
 	}
 
 	clause := strings.Join(where, " AND ")
@@ -466,10 +467,11 @@ func (s *ListingStore) List(ctx context.Context, filter ListingFilter) ([]Listin
 	args = append(args, filter.Offset)
 
 	query := fmt.Sprintf(`
-        SELECT id, company_id, project_id, title, description, property_type, deal_type, status, price, city, address, rooms, area, floor, total_floors, latitude, longitude, created_at, updated_at, published_at
-        FROM listings
+        SELECT l.id, l.company_id, COALESCE(c.name, '') AS company_name, l.project_id, l.title, l.description, l.property_type, l.deal_type, l.status, l.price, l.city, l.address, l.rooms, l.area, l.floor, l.total_floors, l.latitude, l.longitude, l.created_at, l.updated_at, l.published_at
+        FROM listings l
+        LEFT JOIN companies c ON l.company_id = c.id
         WHERE %s
-        ORDER BY created_at DESC
+        ORDER BY l.created_at DESC
         LIMIT $%d OFFSET $%d
     `, clause, len(args)-1, len(args))
 
@@ -497,6 +499,7 @@ func (s *ListingStore) List(ctx context.Context, filter ListingFilter) ([]Listin
 		if err := rows.Scan(
 			&l.ID,
 			&l.CompanyID,
+			&l.CompanyName,
 			&projectID,
 			&l.Title,
 			&l.Description,

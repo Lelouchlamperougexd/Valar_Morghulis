@@ -72,6 +72,12 @@ type Storage struct {
 		GetOverview(ctx context.Context, userID int64) (*DashboardOverview, error)
 		ListChats(ctx context.Context, userID int64) ([]ChatSummary, error)
 	}
+	Complaints interface {
+		Create(ctx context.Context, c *Complaint) error
+		GetByID(ctx context.Context, id int64) (*Complaint, error)
+		List(ctx context.Context, filter ComplaintFilter) ([]Complaint, error)
+		UpdateStatus(ctx context.Context, id int64, status string) error
+	}
 	Invites interface {
 		Create(ctx context.Context, invite *RegistrationInvite) error
 		GetByToken(ctx context.Context, token string) (*RegistrationInvite, error)
@@ -91,6 +97,7 @@ func NewStorage(db *sql.DB, cryptor *crypto.Service) Storage {
 		Messages:     &MessageStore{db: db},
 		Favorites:    &FavoriteStore{db: db},
 		Dashboard:    &DashboardStore{db: db},
+		Complaints:   &ComplaintStore{db: db},
 		Invites:      &InviteStore{db: db},
 	}
 }

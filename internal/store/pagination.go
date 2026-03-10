@@ -7,8 +7,9 @@ import (
 
 // PaginatedQuery holds generic pagination parameters.
 type PaginatedQuery struct {
-	Limit  int `json:"limit" validate:"gte=1,lte=20"`
-	Offset int `json:"offset" validate:"gte=0"`
+	Limit  int    `json:"limit" validate:"gte=1,lte=20"`
+	Offset int    `json:"offset" validate:"gte=0"`
+	Search string `json:"search,omitempty"`
 }
 
 // PaginatedFeedQuery is kept as an alias for backward-compatibility.
@@ -31,6 +32,10 @@ func (pq PaginatedQuery) Parse(r *http.Request) (PaginatedQuery, error) {
 			return pq, nil
 		}
 		pq.Offset = o
+	}
+
+	if v := qs.Get("status"); v != "" {
+		pq.Search = v
 	}
 
 	return pq, nil

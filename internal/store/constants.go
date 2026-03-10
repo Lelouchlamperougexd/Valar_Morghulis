@@ -32,3 +32,17 @@ const (
 	ApplicationStatusApproved = "approved"
 	ApplicationStatusRejected = "rejected"
 )
+
+// Complaint types
+const (
+	ComplaintTypeIncorrectListing = "incorrect_listing"
+	ComplaintTypeRuleViolation    = "rule_violation"
+	ComplaintTypeFraud            = "fraud"
+)
+
+// Complaint statuses
+const (
+	ComplaintStatusNew        = "new"
+	ComplaintStatusInProgress = "in_progress"
+	ComplaintStatusClosed     = "closed"
+)

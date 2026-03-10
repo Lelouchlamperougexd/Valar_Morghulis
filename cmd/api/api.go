@@ -181,6 +181,11 @@ func (app *application) mount() http.Handler {
 			r.Get("/", app.listChatsHandler)
 		})
 
+		r.Route("/complaints", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Post("/", app.createComplaintHandler)
+		})
+
 		r.Route("/users/me", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
 			r.Patch("/", app.updateProfileHandler)
@@ -227,6 +232,12 @@ func (app *application) mount() http.Handler {
 			r.Route("/listings", func(r chi.Router) {
 				r.Get("/", app.adminListListingsHandler)
 				r.Put("/{listingID}/status", app.adminUpdateListingStatusHandler)
+			})
+
+			r.Route("/complaints", func(r chi.Router) {
+				r.Get("/", app.adminListComplaintsHandler)
+				r.Get("/{complaintID}", app.adminGetComplaintHandler)
+				r.Patch("/{complaintID}/status", app.adminUpdateComplaintStatusHandler)
 			})
 
 			r.Post("/invites", app.createInviteHandler)

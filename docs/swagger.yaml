@@ -63,6 +63,30 @@ definitions:
     - full_name
     - phone
     type: object
+  cmd_api.CreateComplaintPayload:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      target_id:
+        type: integer
+      target_type:
+        enum:
+        - listing
+        - company
+        type: string
+      type:
+        enum:
+        - incorrect_listing
+        - rule_violation
+        - fraud
+        type: string
+    required:
+    - description
+    - target_id
+    - target_type
+    - type
+    type: object
   cmd_api.CreateInvitePayload:
     properties:
       company_type:
@@ -302,6 +326,17 @@ definitions:
     required:
     - status
     type: object
+  cmd_api.UpdateComplaintStatusPayload:
+    properties:
+      status:
+        enum:
+        - new
+        - in_progress
+        - closed
+        type: string
+    required:
+    - status
+    type: object
   cmd_api.UpdateListingStatusPayload:
     properties:
       status:
@@ -484,6 +519,36 @@ definitions:
         description: '"pending" | "verified" | "rejected"'
         type: string
     type: object
+  github_com_sikozonpc_social_internal_store.Complaint:
+    properties:
+      author_name:
+        description: joined from users.username
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      status:
+        description: '"new", "in_progress", "closed"'
+        type: string
+      target_id:
+        type: integer
+      target_name:
+        description: joined from listings.title or companies.name
+        type: string
+      target_type:
+        description: '"listing" | "company"'
+        type: string
+      type:
+        description: '"incorrect_listing", "rule_violation", "fraud"'
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
   github_com_sikozonpc_social_internal_store.DashboardOverview:
     properties:
       active_applications_count:
@@ -528,6 +593,8 @@ definitions:
         type: string
       company_id:
         type: integer
+      company_name:
+        type: string
       created_at:
         type: string
       deal_type:
@@ -764,6 +831,111 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Verifies or rejects a company
+      tags:
+      - admin
+  /admin/complaints:
+    get:
+      description: Returns a paginated list of complaints, optionally filtered by
+        status
+      parameters:
+      - description: 'Filter by status: new, in_progress, closed'
+        in: query
+        name: status
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Complaint'
+            type: array
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List complaints
+      tags:
+      - admin
+  /admin/complaints/{complaintID}:
+    get:
+      description: Returns a single complaint with target name and author info
+      parameters:
+      - description: Complaint ID
+        in: path
+        name: complaintID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Complaint'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get complaint by ID
+      tags:
+      - admin
+  /admin/complaints/{complaintID}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Admin changes the status of a complaint
+      parameters:
+      - description: Complaint ID
+        in: path
+        name: complaintID
+        required: true
+        type: integer
+      - description: New status
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cmd_api.UpdateComplaintStatusPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Complaint'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Update complaint status
       tags:
       - admin
   /admin/invites:
@@ -1225,6 +1397,42 @@ paths:
       summary: List chats
       tags:
       - chats
+  /complaints:
+    post:
+      consumes:
+      - application/json
+      description: User submits a complaint about a listing or company
+      parameters:
+      - description: Complaint data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cmd_api.CreateComplaintPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_sikozonpc_social_internal_store.Complaint'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create a complaint
+      tags:
+      - complaints
   /dashboard/overview:
     get:
       description: 'Returns aggregated dashboard data: favorites count, active applications,

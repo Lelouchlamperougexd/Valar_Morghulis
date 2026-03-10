@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/sikozonpc/social/internal/crypto"
 )
@@ -215,17 +217,34 @@ func (s *CompanyStore) List(ctx context.Context, fq PaginatedFeedQuery) ([]Compa
 		return nil, errors.New("encryption service not configured")
 	}
 
-	query := `
+	var where []string
+	var args []any
+
+	if fq.Search != "" {
+		where = append(where, fmt.Sprintf("verification_status = $%d", len(args)+1))
+		args = append(args, fq.Search)
+	}
+
+	whereClause := ""
+	if len(where) > 0 {
+		whereClause = "WHERE " + strings.Join(where, " AND ")
+	}
+
+	args = append(args, fq.Limit)
+	args = append(args, fq.Offset)
+
+	query := fmt.Sprintf(`
 		SELECT id, name, registration_number, city, email, phone, type, verification_status, created_at, updated_at
 		FROM companies
+		%s
 		ORDER BY created_at DESC
-		LIMIT $1 OFFSET $2
-	`
+		LIMIT $%d OFFSET $%d
+	`, whereClause, len(args)-1, len(args))
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, fq.Limit, fq.Offset)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

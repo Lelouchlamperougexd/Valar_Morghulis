@@ -18,6 +18,7 @@ func NewMockStore() Storage {
 		Messages:     &MockMessageStore{},
 		Favorites:    &MockFavoriteStore{},
 		Dashboard:    &MockDashboardStore{},
+		Complaints:   &MockComplaintStore{},
 		Invites:      &MockInviteStore{},
 	}
 }
@@ -201,4 +202,22 @@ func (m *MockDashboardStore) GetOverview(ctx context.Context, userID int64) (*Da
 
 func (m *MockDashboardStore) ListChats(ctx context.Context, userID int64) ([]ChatSummary, error) {
 	return []ChatSummary{}, nil
+}
+
+type MockComplaintStore struct{}
+
+func (m *MockComplaintStore) Create(ctx context.Context, c *Complaint) error {
+	return nil
+}
+
+func (m *MockComplaintStore) GetByID(ctx context.Context, id int64) (*Complaint, error) {
+	return &Complaint{ID: id, Status: ComplaintStatusNew}, nil
+}
+
+func (m *MockComplaintStore) List(ctx context.Context, filter ComplaintFilter) ([]Complaint, error) {
+	return []Complaint{}, nil
+}
+
+func (m *MockComplaintStore) UpdateStatus(ctx context.Context, id int64, status string) error {
+	return nil
 }
