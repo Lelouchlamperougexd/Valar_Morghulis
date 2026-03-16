@@ -1,0 +1,215 @@
+.container {
+  	height: 522.6px;
+  	width: 100%;
+  	position: relative;
+  	box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+  	border-radius: 16px;
+  	background-color: #fff;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: flex-start;
+  	text-align: left;
+  	font-size: 24px;
+  	color: #3a3a3a;
+  	font-family: Inter;
+}
+.container2 {
+  	align-self: stretch;
+  	height: 80.8px;
+  	border-bottom: 0.8px solid #e8e8e8;
+  	box-sizing: border-box;
+  	display: flex;
+  	align-items: center;
+  	justify-content: space-between;
+  	padding: 0px 32px;
+  	gap: 20px;
+}
+.heading2 {
+  	height: 36px;
+  	width: 316.8px;
+  	position: relative;
+}
+.div {
+  	position: absolute;
+  	top: -0.8px;
+  	left: 0px;
+  	line-height: 36px;
+  	font-weight: 600;
+}
+.buttonIcon {
+  	height: 40px;
+  	width: 40px;
+  	border-radius: 8px;
+}
+.container3 {
+  	align-self: stretch;
+  	height: 441.8px;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: flex-start;
+  	padding: 24px 32px 0px;
+  	box-sizing: border-box;
+  	gap: 24px;
+  	font-size: 14px;
+}
+.paragraph {
+  	align-self: stretch;
+  	height: 42px;
+  	position: relative;
+  	color: #737373;
+}
+.div2 {
+  	position: absolute;
+  	top: -0.4px;
+  	left: 0px;
+  	line-height: 21px;
+  	display: inline-block;
+  	width: 355px;
+}
+.container4 {
+  	align-self: stretch;
+  	height: 159.2px;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: flex-start;
+  	gap: 16px;
+}
+.container5 {
+  	align-self: stretch;
+  	height: 71.6px;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: flex-start;
+  	gap: 8px;
+}
+.label {
+  	align-self: stretch;
+  	height: 21px;
+  	position: relative;
+}
+.email {
+  	position: absolute;
+  	top: -0.4px;
+  	left: 0px;
+  	line-height: 21px;
+  	font-weight: 500;
+}
+.span {
+  	color: #fb2c36;
+}
+.container6 {
+  	align-self: stretch;
+  	height: 42.6px;
+  	position: relative;
+  	color: #b3b3b3;
+}
+.emailInput {
+  	position: absolute;
+  	top: 0px;
+  	left: 0px;
+  	border-radius: 8px;
+  	border: 0.8px solid #b3b3b3;
+  	box-sizing: border-box;
+  	width: 436px;
+  	height: 42.6px;
+  	overflow: hidden;
+  	display: flex;
+  	align-items: center;
+  	padding: 10px 16px 10px 40px;
+}
+.adminplatformcom {
+  	position: relative;
+}
+.icon {
+  	position: absolute;
+  	top: 13.3px;
+  	left: 12px;
+  	width: 16px;
+  	height: 16px;
+}
+.passwordInput {
+  	position: absolute;
+  	top: 0px;
+  	left: 0px;
+  	border-radius: 8px;
+  	border: 0.8px solid #b3b3b3;
+  	box-sizing: border-box;
+  	width: 436px;
+  	height: 42.6px;
+  	overflow: hidden;
+  	display: flex;
+  	align-items: center;
+  	padding: 10px 40px;
+}
+.buttonIcon2 {
+  	position: absolute;
+  	top: 13.3px;
+  	left: 408px;
+  	width: 16px;
+  	height: 16px;
+}
+.button {
+  	align-self: stretch;
+  	height: 48px;
+  	border-radius: 8px;
+  	background-color: #70a0ff;
+  	border: none;
+  	font-size: 16px;
+  	font-weight: 500;
+  	cursor: pointer;
+  	display: flex;
+  	align-items: center;
+  	justify-content: center;
+  	color: #fff;
+  	transition: all 0.3s ease;
+}
+.button:hover:not(:disabled) {
+  	background-color: #5a8cf5;
+  	transform: translateY(-2px);
+  	box-shadow: 0 4px 12px rgba(112, 160, 255, 0.3);
+}
+.button:disabled {
+  	background-color: #d2d2d2;
+  	cursor: not-allowed;
+}
+
+.div5 {
+  	position: absolute;
+  	top: 11.4px;
+  	left: 157.6px;
+  	line-height: 24px;
+  	font-weight: 500;
+}
+.container9 {
+  	align-self: stretch;
+  	height: 72.6px;
+  	border-radius: 8px;
+  	background-color: #f8f8f8;
+  	border: 0.8px solid #e8e8e8;
+  	box-sizing: border-box;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: flex-start;
+  	padding: 16.8px 16.8px 0.8px;
+  	font-size: 13px;
+}
+.paragraph2 {
+  	align-self: stretch;
+  	height: 39px;
+  	position: relative;
+}
+.div6 {
+  	position: absolute;
+  	top: 0.6px;
+  	left: 0px;
+  	line-height: 19.5px;
+  	display: inline-block;
+  	width: 318px;
+}
+.span3 {
+  	font-weight: 500;
+}
+.span4 {
+  	color: #737373;
+}
+
