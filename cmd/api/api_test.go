@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sikozonpc/social/internal/ratelimiter"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/ratelimiter"
 )
 
 func TestRateLimiterMiddleware(t *testing.T) {
@@ -52,3 +52,4 @@ func TestRateLimiterMiddleware(t *testing.T) {
 		}
 	}
 }
+

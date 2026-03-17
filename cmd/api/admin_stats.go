@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	_ "github.com/sikozonpc/social/internal/store"
+	_ "github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 // adminStatsOverviewHandler godoc
@@ -63,3 +63,4 @@ func (app *application) adminStatsActivityHandler(w http.ResponseWriter, r *http
 		app.internalServerError(w, r, err)
 	}
 }
+

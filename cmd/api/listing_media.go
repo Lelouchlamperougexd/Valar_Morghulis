@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 const (
@@ -220,3 +220,4 @@ func listingMediaKeyFromURL(listingID int64, mediaURL string) (string, error) {
 
 	return fmt.Sprintf("listings/%d/%s", listingID, name), nil
 }
+

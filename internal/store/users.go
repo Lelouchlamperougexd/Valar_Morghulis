@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sikozonpc/social/internal/crypto"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/crypto"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -681,3 +681,4 @@ func (s *UserStore) UpdatePassword(ctx context.Context, userID int64, hashedPass
 
 	return nil
 }
+

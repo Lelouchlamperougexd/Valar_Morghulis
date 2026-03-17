@@ -13,9 +13,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/sikozonpc/social/internal/crypto"
-	"github.com/sikozonpc/social/internal/mailer"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/crypto"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/mailer"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 type RegisterUserPayload struct {
@@ -572,3 +572,4 @@ func (app *application) buildActivationURL(token string) string {
 
 	return fmt.Sprintf("%s/confirm/%s", base, escapedToken)
 }
+

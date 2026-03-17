@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 type Storage struct {
@@ -20,3 +20,4 @@ func NewRedisStorage(rbd *redis.Client) Storage {
 		Users: &UserStore{rdb: rbd},
 	}
 }
+

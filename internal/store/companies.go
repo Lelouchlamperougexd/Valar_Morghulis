@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sikozonpc/social/internal/crypto"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/crypto"
 )
 
 var (
@@ -284,3 +284,4 @@ func (s *CompanyStore) List(ctx context.Context, fq PaginatedFeedQuery) ([]Compa
 
 	return companies, nil
 }
+

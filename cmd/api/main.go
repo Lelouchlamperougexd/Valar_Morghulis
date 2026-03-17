@@ -8,15 +8,15 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
-	"github.com/sikozonpc/social/internal/auth"
-	"github.com/sikozonpc/social/internal/crypto"
-	"github.com/sikozonpc/social/internal/db"
-	"github.com/sikozonpc/social/internal/env"
-	"github.com/sikozonpc/social/internal/mailer"
-	"github.com/sikozonpc/social/internal/ratelimiter"
-	filestorage "github.com/sikozonpc/social/internal/storage"
-	"github.com/sikozonpc/social/internal/store"
-	"github.com/sikozonpc/social/internal/store/cache"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/auth"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/crypto"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/db"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/env"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/mailer"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/ratelimiter"
+	filestorage "github.com/Lelouchlamperougexd/Valar_Morghulis/internal/storage"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store/cache"
 	"go.uber.org/zap"
 )
 
@@ -232,3 +232,4 @@ func main() {
 	logger.Fatal(app.run(mux))
 
 }
+

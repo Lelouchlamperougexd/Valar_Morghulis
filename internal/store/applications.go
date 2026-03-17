@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sikozonpc/social/internal/crypto"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/crypto"
 )
 
 var ApplicationStatuses = map[string]struct{}{
@@ -492,3 +492,4 @@ func (s *ApplicationStore) GetByListingAndUser(ctx context.Context, listingID, u
 
 	return &a, nil
 }
+

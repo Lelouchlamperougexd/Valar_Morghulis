@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 type ProjectPayload struct {
@@ -1317,3 +1317,4 @@ func isCompatibleWithRent(listing *store.Listing, payload CreateApplicationPaylo
 	}
 	return true
 }
+

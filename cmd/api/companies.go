@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 type VerifyCompanyPayload struct {
@@ -154,3 +154,4 @@ func (app *application) verifyCompanyHandler(w http.ResponseWriter, r *http.Requ
 		app.internalServerError(w, r, err)
 	}
 }
+

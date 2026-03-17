@@ -1,4 +1,4 @@
-module github.com/sikozonpc/social
+module github.com/Lelouchlamperougexd/Valar_Morghulis
 
 go 1.22.0
 
@@ -69,3 +69,4 @@ require (
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+

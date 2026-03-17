@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 // adminListLogsHandler godoc
@@ -73,3 +73,4 @@ func (app *application) logAdminAction(user *store.User, actionType string, targ
 		}
 	}()
 }
+

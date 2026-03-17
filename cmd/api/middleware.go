@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/sikozonpc/social/internal/ratelimiter"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/ratelimiter"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
@@ -153,3 +153,4 @@ func (app *application) buildRateLimiterMiddleware(limiter ratelimiter.Limiter) 
 		})
 	}
 }
+

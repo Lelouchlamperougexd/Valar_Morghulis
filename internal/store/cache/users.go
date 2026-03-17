@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 type UserStore struct {
@@ -52,3 +52,4 @@ func (s *UserStore) Delete(ctx context.Context, userID int64) {
 	cacheKey := fmt.Sprintf("user-%d", userID)
 	s.rdb.Del(ctx, cacheKey)
 }
+

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sikozonpc/social/internal/env"
-	"github.com/sikozonpc/social/internal/mailer"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/env"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/mailer"
 )
 
 func main() {
@@ -52,3 +52,4 @@ func main() {
 
 	fmt.Println("sent OK, status:", status)
 }
+

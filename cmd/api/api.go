@@ -16,14 +16,14 @@ import (
 	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
-	"github.com/sikozonpc/social/docs" // This is required to generate swagger docs
-	"github.com/sikozonpc/social/internal/auth"
-	"github.com/sikozonpc/social/internal/env"
-	"github.com/sikozonpc/social/internal/mailer"
-	"github.com/sikozonpc/social/internal/ratelimiter"
-	filestorage "github.com/sikozonpc/social/internal/storage"
-	"github.com/sikozonpc/social/internal/store"
-	"github.com/sikozonpc/social/internal/store/cache"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/docs" // This is required to generate swagger docs
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/auth"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/env"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/mailer"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/ratelimiter"
+	filestorage "github.com/Lelouchlamperougexd/Valar_Morghulis/internal/storage"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -329,3 +329,4 @@ func (app *application) run(mux http.Handler) error {
 
 	return nil
 }
+

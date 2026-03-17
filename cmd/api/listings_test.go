@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 func TestIsCompatibleWithRent_Allows(t *testing.T) {
@@ -96,3 +96,4 @@ func TestIsCompatibleWithRent_SaleAlwaysCompatible(t *testing.T) {
 
 func boolPtr(v bool) *bool { return &v }
 func intPtr(v int) *int    { return &v }
+

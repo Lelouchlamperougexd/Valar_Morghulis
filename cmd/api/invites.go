@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 type CreateInvitePayload struct {
@@ -130,3 +130,4 @@ func (app *application) getInviteHandler(w http.ResponseWriter, r *http.Request)
 		app.internalServerError(w, r, err)
 	}
 }
+

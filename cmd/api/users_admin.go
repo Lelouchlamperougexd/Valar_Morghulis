@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/sikozonpc/social/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
 )
 
 // adminListUsersHandler godoc
@@ -168,3 +168,4 @@ func (app *application) adminUpdateUserRoleHandler(w http.ResponseWriter, r *htt
 		app.internalServerError(w, r, err)
 	}
 }
+

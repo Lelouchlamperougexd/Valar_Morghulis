@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/sikozonpc/social/internal/crypto"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/crypto"
 )
 
 var (
@@ -135,3 +135,4 @@ func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
 
 	return tx.Commit()
 }
+

@@ -5,10 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sikozonpc/social/internal/auth"
-	"github.com/sikozonpc/social/internal/ratelimiter"
-	"github.com/sikozonpc/social/internal/store"
-	"github.com/sikozonpc/social/internal/store/cache"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/auth"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/ratelimiter"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store"
+	"github.com/Lelouchlamperougexd/Valar_Morghulis/internal/store/cache"
 	"go.uber.org/zap"
 )
 
@@ -51,3 +51,4 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 		t.Errorf("Expected response code %d. Got %d", expected, actual)
 	}
 }
+
