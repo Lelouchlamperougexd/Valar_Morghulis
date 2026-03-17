@@ -149,7 +149,7 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	}
 
 	query := `
-		SELECT users.id, username, first_name, last_name, country, email, phone, push_opt_in, password, created_at,
+		SELECT users.id, username, first_name, last_name, country, email, phone, push_opt_in, password, created_at, is_active,
 		       company_id, job_title,
 		       roles.id, roles.name, roles.level, roles.description
 		FROM users
@@ -178,6 +178,7 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&encryptedPushOptIn,
 		&user.Password.hash,
 		&user.CreatedAt,
+		&user.IsActive,
 		&user.CompanyID,
 		&jobTitle,
 		&user.Role.ID,
@@ -384,7 +385,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 
 	emailHash := crypto.HashEmail(email)
 	query := `
-		SELECT users.id, username, email, first_name, last_name, country, phone, push_opt_in, password, users.created_at,
+		SELECT users.id, username, email, first_name, last_name, country, phone, push_opt_in, password, users.created_at, users.is_active,
 		       company_id, job_title,
 		       roles.id, roles.name, roles.level, roles.description
 		FROM users
@@ -409,6 +410,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 		&encryptedPushOptIn,
 		&user.Password.hash,
 		&user.CreatedAt,
+		&user.IsActive,
 		&user.CompanyID,
 		&jobTitle,
 		&user.Role.ID,

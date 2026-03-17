@@ -2168,6 +2168,90 @@ paths:
       summary: Create application for listing
       tags:
       - applications
+  /listings/{listingID}/media:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads one image for a listing owned by the current company
+      parameters:
+      - description: Listing ID
+        in: path
+        name: listingID
+        required: true
+        type: integer
+      - description: Listing image (jpeg/png/webp, max 10MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.ListingMedia'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Upload listing photo (agency/developer)
+      tags:
+      - listings
+  /listings/{listingID}/media/{mediaID}:
+    delete:
+      description: Deletes one image from a listing owned by the current company
+      parameters:
+      - description: Listing ID
+        in: path
+        name: listingID
+        required: true
+        type: integer
+      - description: Media ID
+        in: path
+        name: mediaID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Deleted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Delete listing photo (agency/developer)
+      tags:
+      - listings
   /projects:
     get:
       description: Returns all projects of the current developer company
