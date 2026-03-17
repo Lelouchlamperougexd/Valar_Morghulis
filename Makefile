@@ -15,4 +15,4 @@ migrate-up:
 
 .PHONY: gen-docs
 gen-docs:
-	@swag init -g ./api/main.go -d cmd,internal/store,internal/auth,internal/mailer && swag fmt
+	@swag init -g main.go -d cmd/api,internal/store,internal/auth,internal/mailer --parseDependency --parseInternal && swag fmt

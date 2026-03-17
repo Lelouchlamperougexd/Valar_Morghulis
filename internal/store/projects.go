@@ -87,3 +87,51 @@ func (s *ProjectStore) GetByID(ctx context.Context, id int64) (*Project, error) 
 
 	return &p, nil
 }
+
+func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
+	if p == nil {
+		return errors.New("project is nil")
+	}
+
+	query := `
+        UPDATE projects
+        SET name = $1, description = $2, city = $3, updated_at = NOW()
+        WHERE id = $4
+        RETURNING updated_at
+    `
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query, p.Name, p.Description, p.City, p.ID).Scan(&p.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (s *ProjectStore) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM projects WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth Playground | Real Estate API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="page-bg" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">Платформа недвижимости</div>
+      <nav class="menu" aria-label="Главная навигация">
+        <a href="#" class="menu-link">Главная</a>
+        <a href="#" class="menu-link">Каталог</a>
+        <a href="#" class="menu-link accent">Создать объявление</a>
+      </nav>
+      <div class="topbar-actions">
+        <button id="open-register" class="btn ghost" type="button">Зарегистрироваться</button>
+        <button id="open-login" class="btn primary" type="button">Войти</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container hero">
+    <section class="hero-copy">
+      <p class="eyebrow">Тестовый клиент для API</p>
+      <h1>Проверка авторизации и аутентификации</h1>
+      <p class="hero-text">
+        Интерфейс повторяет flow из твоей схемы: выбор роли, регистрация, логин,
+        получение профиля через JWT. Нужен только запущенный backend.
+      </p>
+      <div class="hero-cta">
+        <button id="hero-register" class="btn primary large" type="button">Начать регистрацию</button>
+        <button id="hero-login" class="btn ghost large" type="button">Тестировать вход</button>
+      </div>
+    </section>
+
+    <section class="console-card" aria-labelledby="console-title">
+      <h2 id="console-title">API Console</h2>
+      <div class="api-config">
+        <label for="api-base">Base URL</label>
+        <input id="api-base" type="url" value="http://localhost:8080/v1" spellcheck="false" />
+      </div>
+
+      <div class="activation-box" aria-labelledby="activation-title">
+        <div id="activation-title" class="activation-title">Активация аккаунта по токену</div>
+        <div class="activation-controls">
+          <input id="activation-token" type="text" placeholder="вставь activation token" spellcheck="false" />
+          <button id="btn-activate" class="btn primary" type="button">Активировать</button>
+        </div>
+        <p class="activation-hint">Токен приходит после регистрации и в письме. Endpoint: PUT /users/activate/{token}</p>
+      </div>
+
+      <div class="session-box" id="session-box">
+        <div class="session-row"><span>JWT:</span><code id="jwt-short">нет</code></div>
+        <div class="session-row"><span>Пользователь:</span><strong id="session-user">не авторизован</strong></div>
+        <div class="session-row"><span>Роль:</span><strong id="session-role">-</strong></div>
+        <div class="session-actions">
+          <button id="btn-me" class="btn secondary" type="button">GET /authentication/me</button>
+          <button id="btn-logout" class="btn danger" type="button">Очистить токен</button>
+        </div>
+      </div>
+
+      <div class="response-box">
+        <div class="response-title">Последний ответ</div>
+        <pre id="response-output">Ожидание запроса...</pre>
+      </div>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay hidden" aria-hidden="true"></div>
+
+  <section id="register-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="register-title">
+    <div class="modal-head">
+      <h2 id="register-title">Регистрация</h2>
+      <button class="icon-btn" data-close="register" type="button" aria-label="Закрыть">×</button>
+    </div>
+
+    <div class="step-caption" id="register-step-caption">Шаг 1 из 2</div>
+
+    <div id="register-step-1" class="step-pane active">
+      <h3>Выберите тип аккаунта</h3>
+      <div class="account-choices" role="radiogroup" aria-label="Тип аккаунта">
+        <label class="choice-card selected" data-account-type="user">
+          <input type="radio" name="account_type" value="user" checked />
+          <span class="choice-title">Пользователь</span>
+          <span class="choice-desc">Просмотр объектов и отправка заявок</span>
+        </label>
+
+        <label class="choice-card" data-account-type="agency">
+          <input type="radio" name="account_type" value="agency" />
+          <span class="choice-title">Агентство недвижимости</span>
+          <span class="choice-desc">Публикация объявлений и работа с клиентами</span>
+        </label>
+
+        <label class="choice-card" data-account-type="developer">
+          <input type="radio" name="account_type" value="developer" />
+          <span class="choice-title">Застройщик</span>
+          <span class="choice-desc">Размещение проектов и управление объектами</span>
+        </label>
+      </div>
+
+      <div class="modal-actions single">
+        <button id="register-next" class="btn primary" type="button">Продолжить</button>
+      </div>
+    </div>
+
+    <div id="register-step-2" class="step-pane">
+      <form id="registration-form" novalidate>
+        <div id="role-badge" class="role-badge">Тип: Пользователь</div>
+
+        <div id="user-fields" class="field-grid two">
+          <label>
+            Имя*
+            <input name="first_name" type="text" placeholder="Алия" required />
+          </label>
+          <label>
+            Фамилия*
+            <input name="last_name" type="text" placeholder="Садыкова" required />
+          </label>
+          <label>
+            Email*
+            <input name="email" type="email" placeholder="seller@example.kz" required />
+          </label>
+          <label>
+            Телефон*
+            <input name="phone" type="tel" placeholder="+7 700 000 00 00" required />
+          </label>
+          <label>
+            Пароль*
+            <input name="password" type="password" placeholder="••••••••" minlength="8" autocomplete="new-password" required />
+          </label>
+          <label>
+            Повторите пароль*
+            <input name="password_confirmation" type="password" placeholder="••••••••" minlength="8" autocomplete="new-password" required />
+          </label>
+          <p class="password-hint">Минимум 8 символов: строчная и заглавная буква, цифра и спецсимвол (например ! @ # $ %).</p>
+        </div>
+
+        <div id="company-fields" class="hidden">
+          <div class="subsection-title">Информация о компании</div>
+          <div class="field-grid two">
+            <label class="full">
+              Название компании*
+              <input name="company_name" type="text" placeholder="ТОО Городская Недвижимость" />
+            </label>
+            <label>
+              Регистрационный номер*
+              <input name="registration_number" type="text" placeholder="БИН/ИИН" />
+            </label>
+            <label>
+              Город*
+              <input name="city" type="text" placeholder="Алматы" />
+            </label>
+            <label>
+              Email компании*
+              <input name="company_email" type="email" placeholder="info@company.kz" />
+            </label>
+            <label>
+              Телефон компании*
+              <input name="company_phone" type="tel" placeholder="+7 777 000 00 00" />
+            </label>
+            <label class="full">
+              Invite token (опционально)
+              <input name="invite_token" type="text" placeholder="если есть приглашение" />
+            </label>
+          </div>
+
+          <div class="subsection-title">Контактное лицо</div>
+          <div class="field-grid two">
+            <label>
+              Имя*
+              <input name="contact_first_name" type="text" placeholder="Алексей" />
+            </label>
+            <label>
+              Фамилия*
+              <input name="contact_last_name" type="text" placeholder="Иванов" />
+            </label>
+            <label class="full">
+              Должность*
+              <input name="job_title" type="text" placeholder="Директор" />
+            </label>
+            <label>
+              Пароль*
+              <input name="company_password" type="password" placeholder="••••••••" minlength="8" autocomplete="new-password" />
+            </label>
+            <label>
+              Повторите пароль*
+              <input name="company_password_confirmation" type="password" placeholder="••••••••" minlength="8" autocomplete="new-password" />
+            </label>
+            <p class="password-hint full">Минимум 8 символов: строчная и заглавная буква, цифра и спецсимвол (например ! @ # $ %).</p>
+          </div>
+        </div>
+
+        <label class="terms">
+          <input id="terms" type="checkbox" />
+          <span>Я принимаю условия сервиса и согласен(на) на обработку персональных данных.</span>
+        </label>
+
+        <div class="modal-actions two">
+          <button id="register-back" class="btn ghost" type="button">Назад</button>
+          <button id="register-submit" class="btn primary" type="submit">Зарегистрироваться</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section id="login-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="modal-head">
+      <h2 id="login-title">Вход</h2>
+      <button class="icon-btn" data-close="login" type="button" aria-label="Закрыть">×</button>
+    </div>
+
+    <form id="login-form" class="login-form" novalidate>
+      <label>
+        Email*
+        <input name="email" type="email" placeholder="user@example.kz" required />
+      </label>
+      <label>
+        Пароль*
+        <input name="password" type="password" placeholder="••••••••" required />
+      </label>
+
+      <label class="checkline">
+        <input id="admin-login" type="checkbox" />
+        <span>Войти как админ/модератор (`/authentication/admin/token`)</span>
+      </label>
+
+      <div class="modal-actions single">
+        <button class="btn primary" type="submit">Войти</button>
+      </div>
+    </form>
+  </section>
+
+  <script src="./app.js"></script>
+</body>
+</html>

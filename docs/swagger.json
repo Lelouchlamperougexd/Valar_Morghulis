@@ -54,7 +54,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Company"
+                                "$ref": "#/definitions/store.Company"
                             }
                         }
                     },
@@ -96,7 +96,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Company"
+                            "$ref": "#/definitions/store.Company"
                         }
                     },
                     "400": {
@@ -146,7 +146,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.VerifyCompanyPayload"
+                            "$ref": "#/definitions/main.VerifyCompanyPayload"
                         }
                     }
                 ],
@@ -154,7 +154,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Company"
+                            "$ref": "#/definitions/store.Company"
                         }
                     },
                     "400": {
@@ -213,7 +213,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                                "$ref": "#/definitions/store.Complaint"
                             }
                         }
                     },
@@ -256,7 +256,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                            "$ref": "#/definitions/store.Complaint"
                         }
                     },
                     "400": {
@@ -306,7 +306,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.UpdateComplaintStatusPayload"
+                            "$ref": "#/definitions/main.UpdateComplaintStatusPayload"
                         }
                     }
                 ],
@@ -314,7 +314,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                            "$ref": "#/definitions/store.Complaint"
                         }
                     },
                     "400": {
@@ -357,7 +357,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.CreateInvitePayload"
+                            "$ref": "#/definitions/main.CreateInvitePayload"
                         }
                     }
                 ],
@@ -365,7 +365,7 @@
                     "201": {
                         "description": "Invite created",
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.InviteResponse"
+                            "$ref": "#/definitions/main.InviteResponse"
                         }
                     },
                     "400": {
@@ -437,7 +437,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
+                                "$ref": "#/definitions/store.Listing"
                             }
                         }
                     },
@@ -491,7 +491,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.UpdateListingStatusPayload"
+                            "$ref": "#/definitions/main.UpdateListingStatusPayload"
                         }
                     }
                 ],
@@ -499,7 +499,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
+                            "$ref": "#/definitions/store.Listing"
                         }
                     },
                     "400": {
@@ -560,7 +560,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.AdminAction"
+                                "$ref": "#/definitions/store.AdminAction"
                             }
                         }
                     },
@@ -608,7 +608,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ActivityChartData"
+                                "$ref": "#/definitions/store.ActivityChartData"
                             }
                         }
                     },
@@ -650,7 +650,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.DashboardStats"
+                            "$ref": "#/definitions/store.DashboardStats"
                         }
                     },
                     "401": {
@@ -709,7 +709,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
+                                "$ref": "#/definitions/store.User"
                             }
                         }
                     },
@@ -907,7 +907,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Application"
+                                "$ref": "#/definitions/store.Application"
                             }
                         }
                     },
@@ -967,7 +967,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ApplicationMessage"
+                                "$ref": "#/definitions/store.ApplicationMessage"
                             }
                         }
                     },
@@ -1019,7 +1019,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.ApplicationMessagePayload"
+                            "$ref": "#/definitions/main.ApplicationMessagePayload"
                         }
                     }
                 ],
@@ -1027,7 +1027,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ApplicationMessage"
+                            "$ref": "#/definitions/store.ApplicationMessage"
                         }
                     },
                     "400": {
@@ -1084,7 +1084,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.UpdateApplicationStatusPayload"
+                            "$ref": "#/definitions/main.UpdateApplicationStatusPayload"
                         }
                     }
                 ],
@@ -1092,7 +1092,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Application"
+                            "$ref": "#/definitions/store.Application"
                         }
                     },
                     "400": {
@@ -1138,7 +1138,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.CreateUserTokenPayload"
+                            "$ref": "#/definitions/main.CreateUserTokenPayload"
                         }
                     }
                 ],
@@ -1146,7 +1146,7 @@
                     "200": {
                         "description": "Admin login successful",
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.LoginResponse"
+                            "$ref": "#/definitions/main.LoginResponse"
                         }
                     },
                     "400": {
@@ -1188,7 +1188,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.RegisterCompanyPayload"
+                            "$ref": "#/definitions/main.RegisterCompanyPayload"
                         }
                     }
                 ],
@@ -1196,7 +1196,7 @@
                     "201": {
                         "description": "Company and user registered",
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.UserWithToken"
+                            "$ref": "#/definitions/main.UserWithToken"
                         }
                     },
                     "400": {
@@ -1229,7 +1229,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
+                            "$ref": "#/definitions/store.User"
                         }
                     },
                     "401": {
@@ -1259,7 +1259,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.CreateUserTokenPayload"
+                            "$ref": "#/definitions/main.CreateUserTokenPayload"
                         }
                     }
                 ],
@@ -1267,7 +1267,7 @@
                     "200": {
                         "description": "Login successful",
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.LoginResponse"
+                            "$ref": "#/definitions/main.LoginResponse"
                         }
                     },
                     "400": {
@@ -1305,7 +1305,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.RegisterUserPayload"
+                            "$ref": "#/definitions/main.RegisterUserPayload"
                         }
                     }
                 ],
@@ -1313,7 +1313,7 @@
                     "201": {
                         "description": "User registered",
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.UserWithToken"
+                            "$ref": "#/definitions/main.UserWithToken"
                         }
                     },
                     "400": {
@@ -1348,7 +1348,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ChatSummary"
+                                "$ref": "#/definitions/store.ChatSummary"
                             }
                         }
                     },
@@ -1388,7 +1388,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.CreateComplaintPayload"
+                            "$ref": "#/definitions/main.CreateComplaintPayload"
                         }
                     }
                 ],
@@ -1396,7 +1396,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Complaint"
+                            "$ref": "#/definitions/store.Complaint"
                         }
                     },
                     "400": {
@@ -1437,7 +1437,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.DashboardOverview"
+                            "$ref": "#/definitions/store.DashboardOverview"
                         }
                     },
                     "401": {
@@ -1472,7 +1472,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.FavoriteListing"
+                                "$ref": "#/definitions/store.FavoriteListing"
                             }
                         }
                     },
@@ -1637,7 +1637,7 @@
                     "200": {
                         "description": "Token is valid",
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.ValidateInviteResponse"
+                            "$ref": "#/definitions/main.ValidateInviteResponse"
                         }
                     },
                     "404": {
@@ -1735,7 +1735,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
+                                "$ref": "#/definitions/store.Listing"
                             }
                         }
                     },
@@ -1773,7 +1773,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.CreateListingPayload"
+                            "$ref": "#/definitions/main.CreateListingPayload"
                         }
                     }
                 ],
@@ -1781,7 +1781,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
+                            "$ref": "#/definitions/store.Listing"
                         }
                     },
                     "400": {
@@ -1829,8 +1829,124 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Listing"
+                            "$ref": "#/definitions/store.Listing"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes listing owned by current company. Related favorites and applications are removed by cascade.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "listings"
+                ],
+                "summary": "Delete listing (agency/developer)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Listing ID",
+                        "name": "listingID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Partially updates listing fields for current company owner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "listings"
+                ],
+                "summary": "Update listing (agency/developer)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Listing ID",
+                        "name": "listingID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateListingPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Listing"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
                     },
                     "404": {
                         "description": "Not Found",
@@ -1875,7 +1991,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.CreateApplicationPayload"
+                            "$ref": "#/definitions/main.CreateApplicationPayload"
                         }
                     }
                 ],
@@ -1883,7 +1999,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Application"
+                            "$ref": "#/definitions/store.Application"
                         }
                     },
                     "400": {
@@ -1910,6 +2026,44 @@
             }
         },
         "/projects": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all projects of the current developer company",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "projects"
+                ],
+                "summary": "List projects (developer)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Project"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1934,7 +2088,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.ProjectPayload"
+                            "$ref": "#/definitions/main.ProjectPayload"
                         }
                     }
                 ],
@@ -1942,7 +2096,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Project"
+                            "$ref": "#/definitions/store.Project"
                         }
                     },
                     "400": {
@@ -1955,6 +2109,176 @@
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/projects/{projectID}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a single project if it belongs to the current developer company",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "projects"
+                ],
+                "summary": "Get project by ID (developer)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "projectID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Project"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes project owned by current developer company. Related listings are preserved with project_id set to null.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "projects"
+                ],
+                "summary": "Delete project (developer)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "projectID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Partially updates project fields for current developer company",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "projects"
+                ],
+                "summary": "Update project (developer)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "projectID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateProjectPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Project"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {}
                     },
                     "500": {
@@ -1995,7 +2319,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
+                            "$ref": "#/definitions/store.User"
                         }
                     },
                     "400": {
@@ -2080,7 +2404,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.UpdateProfilePayload"
+                            "$ref": "#/definitions/main.UpdateProfilePayload"
                         }
                     }
                 ],
@@ -2088,7 +2412,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
+                            "$ref": "#/definitions/store.User"
                         }
                     },
                     "400": {
@@ -2131,7 +2455,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cmd_api.ChangePasswordPayload"
+                            "$ref": "#/definitions/main.ChangePasswordPayload"
                         }
                     }
                 ],
@@ -2193,7 +2517,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
+                            "$ref": "#/definitions/store.User"
                         }
                     },
                     "400": {
@@ -2213,7 +2537,7 @@
         }
     },
     "definitions": {
-        "cmd_api.ApplicationMessagePayload": {
+        "main.ApplicationMessagePayload": {
             "type": "object",
             "required": [
                 "body"
@@ -2225,7 +2549,7 @@
                 }
             }
         },
-        "cmd_api.ChangePasswordPayload": {
+        "main.ChangePasswordPayload": {
             "type": "object",
             "required": [
                 "new_password",
@@ -2248,7 +2572,7 @@
                 }
             }
         },
-        "cmd_api.CreateApplicationPayload": {
+        "main.CreateApplicationPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -2300,7 +2624,7 @@
                 }
             }
         },
-        "cmd_api.CreateComplaintPayload": {
+        "main.CreateComplaintPayload": {
             "type": "object",
             "required": [
                 "description",
@@ -2333,7 +2657,7 @@
                 }
             }
         },
-        "cmd_api.CreateInvitePayload": {
+        "main.CreateInvitePayload": {
             "type": "object",
             "required": [
                 "company_type"
@@ -2348,7 +2672,7 @@
                 }
             }
         },
-        "cmd_api.CreateListingPayload": {
+        "main.CreateListingPayload": {
             "type": "object",
             "required": [
                 "city",
@@ -2399,7 +2723,7 @@
                     "type": "array",
                     "maxItems": 20,
                     "items": {
-                        "$ref": "#/definitions/cmd_api.ListingMediaPayload"
+                        "$ref": "#/definitions/main.ListingMediaPayload"
                     }
                 },
                 "price": {
@@ -2413,7 +2737,7 @@
                     "maxLength": 50
                 },
                 "rent_constraints": {
-                    "$ref": "#/definitions/cmd_api.RentConstraintsPayload"
+                    "$ref": "#/definitions/main.RentConstraintsPayload"
                 },
                 "rooms": {
                     "type": "integer",
@@ -2431,7 +2755,7 @@
                 }
             }
         },
-        "cmd_api.CreateUserTokenPayload": {
+        "main.CreateUserTokenPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -2449,7 +2773,7 @@
                 }
             }
         },
-        "cmd_api.InviteResponse": {
+        "main.InviteResponse": {
             "type": "object",
             "properties": {
                 "company_type": {
@@ -2466,7 +2790,7 @@
                 }
             }
         },
-        "cmd_api.ListingMediaPayload": {
+        "main.ListingMediaPayload": {
             "type": "object",
             "required": [
                 "url"
@@ -2481,18 +2805,18 @@
                 }
             }
         },
-        "cmd_api.LoginResponse": {
+        "main.LoginResponse": {
             "type": "object",
             "properties": {
                 "token": {
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.User"
+                    "$ref": "#/definitions/store.User"
                 }
             }
         },
-        "cmd_api.ProjectPayload": {
+        "main.ProjectPayload": {
             "type": "object",
             "required": [
                 "city",
@@ -2513,7 +2837,7 @@
                 }
             }
         },
-        "cmd_api.RegisterCompanyPayload": {
+        "main.RegisterCompanyPayload": {
             "type": "object",
             "required": [
                 "city",
@@ -2585,7 +2909,7 @@
                 }
             }
         },
-        "cmd_api.RegisterUserPayload": {
+        "main.RegisterUserPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -2622,7 +2946,7 @@
                 }
             }
         },
-        "cmd_api.RentConstraintsPayload": {
+        "main.RentConstraintsPayload": {
             "type": "object",
             "properties": {
                 "allow_children": {
@@ -2644,7 +2968,7 @@
                 }
             }
         },
-        "cmd_api.UpdateApplicationStatusPayload": {
+        "main.UpdateApplicationStatusPayload": {
             "type": "object",
             "required": [
                 "status"
@@ -2661,7 +2985,7 @@
                 }
             }
         },
-        "cmd_api.UpdateComplaintStatusPayload": {
+        "main.UpdateComplaintStatusPayload": {
             "type": "object",
             "required": [
                 "status"
@@ -2677,7 +3001,65 @@
                 }
             }
         },
-        "cmd_api.UpdateListingStatusPayload": {
+        "main.UpdateListingPayload": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "area": {
+                    "type": "number"
+                },
+                "city": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "description": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer",
+                    "maximum": 200,
+                    "minimum": 0
+                },
+                "latitude": {
+                    "type": "number",
+                    "maximum": 90,
+                    "minimum": -90
+                },
+                "longitude": {
+                    "type": "number",
+                    "maximum": 180,
+                    "minimum": -180
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "property_type": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "rooms": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 0
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "total_floors": {
+                    "type": "integer",
+                    "maximum": 200,
+                    "minimum": 0
+                }
+            }
+        },
+        "main.UpdateListingStatusPayload": {
             "type": "object",
             "required": [
                 "status"
@@ -2695,7 +3077,7 @@
                 }
             }
         },
-        "cmd_api.UpdateProfilePayload": {
+        "main.UpdateProfilePayload": {
             "type": "object",
             "properties": {
                 "first_name": {
@@ -2712,7 +3094,24 @@
                 }
             }
         },
-        "cmd_api.UserWithToken": {
+        "main.UpdateProjectPayload": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
+        "main.UserWithToken": {
             "type": "object",
             "properties": {
                 "company_id": {
@@ -2749,7 +3148,7 @@
                     "type": "boolean"
                 },
                 "role": {
-                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Role"
+                    "$ref": "#/definitions/store.Role"
                 },
                 "role_id": {
                     "type": "integer"
@@ -2762,7 +3161,7 @@
                 }
             }
         },
-        "cmd_api.ValidateInviteResponse": {
+        "main.ValidateInviteResponse": {
             "type": "object",
             "properties": {
                 "company_type": {
@@ -2773,7 +3172,7 @@
                 }
             }
         },
-        "cmd_api.VerifyCompanyPayload": {
+        "main.VerifyCompanyPayload": {
             "type": "object",
             "required": [
                 "status"
@@ -2788,7 +3187,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.ActivityChartData": {
+        "store.ActivityChartData": {
             "type": "object",
             "properties": {
                 "date": {
@@ -2805,7 +3204,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.AdminAction": {
+        "store.AdminAction": {
             "type": "object",
             "properties": {
                 "action_type": {
@@ -2839,7 +3238,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.Application": {
+        "store.Application": {
             "type": "object",
             "properties": {
                 "comment": {
@@ -2901,7 +3300,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.ApplicationMessage": {
+        "store.ApplicationMessage": {
             "type": "object",
             "properties": {
                 "application_id": {
@@ -2921,7 +3320,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.ApplicationSummary": {
+        "store.ApplicationSummary": {
             "type": "object",
             "properties": {
                 "company_name": {
@@ -2941,7 +3340,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.ChatSummary": {
+        "store.ChatSummary": {
             "type": "object",
             "properties": {
                 "application_id": {
@@ -2964,7 +3363,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.Company": {
+        "store.Company": {
             "type": "object",
             "properties": {
                 "city": {
@@ -3001,7 +3400,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.Complaint": {
+        "store.Complaint": {
             "type": "object",
             "properties": {
                 "author_name": {
@@ -3044,7 +3443,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.DashboardOverview": {
+        "store.DashboardOverview": {
             "type": "object",
             "properties": {
                 "active_applications_count": {
@@ -3056,13 +3455,13 @@
                 "recent_applications": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ApplicationSummary"
+                        "$ref": "#/definitions/store.ApplicationSummary"
                     }
                 },
                 "recent_listings": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.FavoriteListing"
+                        "$ref": "#/definitions/store.FavoriteListing"
                     }
                 },
                 "unread_messages_count": {
@@ -3070,7 +3469,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.DashboardStats": {
+        "store.DashboardStats": {
             "type": "object",
             "properties": {
                 "on_moderation": {
@@ -3087,7 +3486,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.FavoriteListing": {
+        "store.FavoriteListing": {
             "type": "object",
             "properties": {
                 "area": {
@@ -3113,7 +3512,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.Listing": {
+        "store.Listing": {
             "type": "object",
             "properties": {
                 "address": {
@@ -3155,7 +3554,7 @@
                 "media": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.ListingMedia"
+                        "$ref": "#/definitions/store.ListingMedia"
                     }
                 },
                 "price": {
@@ -3171,7 +3570,7 @@
                     "type": "string"
                 },
                 "rent_constraints": {
-                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.RentConstraints"
+                    "$ref": "#/definitions/store.RentConstraints"
                 },
                 "rooms": {
                     "type": "integer"
@@ -3190,7 +3589,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.ListingMedia": {
+        "store.ListingMedia": {
             "type": "object",
             "properties": {
                 "id": {
@@ -3207,7 +3606,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.Project": {
+        "store.Project": {
             "type": "object",
             "properties": {
                 "city": {
@@ -3233,7 +3632,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.RentConstraints": {
+        "store.RentConstraints": {
             "type": "object",
             "properties": {
                 "allow_children": {
@@ -3256,7 +3655,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.Role": {
+        "store.Role": {
             "type": "object",
             "properties": {
                 "description": {
@@ -3273,7 +3672,7 @@
                 }
             }
         },
-        "github_com_sikozonpc_social_internal_store.User": {
+        "store.User": {
             "type": "object",
             "properties": {
                 "company_id": {
@@ -3310,7 +3709,7 @@
                     "type": "boolean"
                 },
                 "role": {
-                    "$ref": "#/definitions/github_com_sikozonpc_social_internal_store.Role"
+                    "$ref": "#/definitions/store.Role"
                 },
                 "role_id": {
                     "type": "integer"

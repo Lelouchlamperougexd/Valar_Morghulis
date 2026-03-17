@@ -123,13 +123,43 @@ func (m *MockProjectStore) GetByID(ctx context.Context, id int64) (*Project, err
 	return &Project{ID: id}, nil
 }
 
+func (m *MockProjectStore) Update(ctx context.Context, project *Project) error {
+	return nil
+}
+
+func (m *MockProjectStore) Delete(ctx context.Context, id int64) error {
+	return nil
+}
+
 type MockListingStore struct{}
 
 func (m *MockListingStore) Create(ctx context.Context, listing *Listing, media []ListingMedia, rent *RentConstraints) error {
 	return nil
 }
 
+func (m *MockListingStore) CreateMedia(ctx context.Context, media *ListingMedia) error {
+	media.ID = 1
+	media.Position = 0
+	return nil
+}
+
+func (m *MockListingStore) GetMediaByID(ctx context.Context, listingID, mediaID int64) (*ListingMedia, error) {
+	return &ListingMedia{ID: mediaID, ListingID: listingID, URL: "/uploads/listings/1/mock.jpg", Position: 0}, nil
+}
+
+func (m *MockListingStore) DeleteMedia(ctx context.Context, listingID, mediaID int64) error {
+	return nil
+}
+
 func (m *MockListingStore) UpdateStatus(ctx context.Context, id int64, status string) error {
+	return nil
+}
+
+func (m *MockListingStore) Update(ctx context.Context, listing *Listing) error {
+	return nil
+}
+
+func (m *MockListingStore) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 

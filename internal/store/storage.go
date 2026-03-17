@@ -47,10 +47,17 @@ type Storage struct {
 		Create(ctx context.Context, project *Project) error
 		ListByCompany(ctx context.Context, companyID int64) ([]Project, error)
 		GetByID(ctx context.Context, id int64) (*Project, error)
+		Update(ctx context.Context, project *Project) error
+		Delete(ctx context.Context, id int64) error
 	}
 	Listings interface {
 		Create(ctx context.Context, listing *Listing, media []ListingMedia, rent *RentConstraints) error
+		CreateMedia(ctx context.Context, media *ListingMedia) error
+		GetMediaByID(ctx context.Context, listingID, mediaID int64) (*ListingMedia, error)
+		DeleteMedia(ctx context.Context, listingID, mediaID int64) error
 		UpdateStatus(ctx context.Context, id int64, status string) error
+		Update(ctx context.Context, listing *Listing) error
+		Delete(ctx context.Context, id int64) error
 		GetByID(ctx context.Context, id int64) (*Listing, error)
 		List(ctx context.Context, filter ListingFilter) ([]Listing, error)
 	}

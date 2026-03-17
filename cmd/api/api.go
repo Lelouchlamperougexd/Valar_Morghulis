@@ -21,6 +21,7 @@ import (
 	"github.com/sikozonpc/social/internal/env"
 	"github.com/sikozonpc/social/internal/mailer"
 	"github.com/sikozonpc/social/internal/ratelimiter"
+	filestorage "github.com/sikozonpc/social/internal/storage"
 	"github.com/sikozonpc/social/internal/store"
 	"github.com/sikozonpc/social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -34,6 +35,7 @@ type application struct {
 	mailer        mailer.Client
 	authenticator auth.Authenticator
 	rateLimiter   ratelimiter.Limiter
+	uploader      filestorage.Uploader
 }
 
 type config struct {
@@ -47,6 +49,16 @@ type config struct {
 	redisCfg    redisConfig
 	rateLimiter ratelimiter.Config
 	cryptoKey   string
+	storage     storageConfig
+}
+
+type storageConfig struct {
+	provider  string
+	bucket    string
+	region    string
+	endpoint  string
+	keyID     string
+	secretKey string
 }
 
 type redisConfig struct {
@@ -154,13 +166,24 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/projects", func(r chi.Router) {
-			r.With(app.AuthTokenMiddleware).Post("/", app.createProjectHandler)
+			r.Use(app.AuthTokenMiddleware)
+			r.Post("/", app.createProjectHandler)
+			r.Get("/", app.listProjectsHandler)
+			r.Route("/{projectID}", func(r chi.Router) {
+				r.Get("/", app.getProjectHandler)
+				r.Patch("/", app.updateProjectHandler)
+				r.Delete("/", app.deleteProjectHandler)
+			})
 		})
 
 		r.Route("/listings", func(r chi.Router) {
 			r.Get("/", app.listListingsHandler)
 			r.Get("/{listingID}", app.getListingHandler)
 			r.With(app.AuthTokenMiddleware).Post("/", app.createListingHandler)
+			r.With(app.AuthTokenMiddleware).Patch("/{listingID}", app.updateListingHandler)
+			r.With(app.AuthTokenMiddleware).Delete("/{listingID}", app.deleteListingHandler)
+			r.With(app.AuthTokenMiddleware).Post("/{listingID}/media", app.uploadListingMediaHandler)
+			r.With(app.AuthTokenMiddleware).Delete("/{listingID}/media/{mediaID}", app.deleteListingMediaHandler)
 			r.With(app.AuthTokenMiddleware).Post("/{listingID}/applications", app.createApplicationHandler)
 		})
 

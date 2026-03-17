@@ -237,6 +237,59 @@ func (s *ListingStore) insertMedia(ctx context.Context, tx *sql.Tx, media *Listi
 	return tx.QueryRowContext(ctx, query, media.ListingID, media.URL, media.Position).Scan(&media.ID)
 }
 
+func (s *ListingStore) CreateMedia(ctx context.Context, media *ListingMedia) error {
+	query := `
+        INSERT INTO listing_media (listing_id, url, position)
+        VALUES ($1, $2, COALESCE((SELECT MAX(position) + 1 FROM listing_media WHERE listing_id = $1), 0))
+        RETURNING id, position
+    `
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	return s.db.QueryRowContext(ctx, query, media.ListingID, media.URL).Scan(&media.ID, &media.Position)
+}
+
+func (s *ListingStore) GetMediaByID(ctx context.Context, listingID, mediaID int64) (*ListingMedia, error) {
+	query := `SELECT id, listing_id, url, position FROM listing_media WHERE listing_id = $1 AND id = $2`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var media ListingMedia
+	err := s.db.QueryRowContext(ctx, query, listingID, mediaID).Scan(&media.ID, &media.ListingID, &media.URL, &media.Position)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &media, nil
+}
+
+func (s *ListingStore) DeleteMedia(ctx context.Context, listingID, mediaID int64) error {
+	query := `DELETE FROM listing_media WHERE listing_id = $1 AND id = $2`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, listingID, mediaID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
 func (s *ListingStore) insertRentConstraints(ctx context.Context, tx *sql.Tx, rent *RentConstraints) error {
 	query := `
         INSERT INTO listing_rent_constraints (listing_id, allow_children, allow_pets, allow_students, max_occupants, min_term_months)
@@ -262,6 +315,127 @@ func (s *ListingStore) UpdateStatus(ctx context.Context, id int64, status string
 	defer cancel()
 
 	res, err := s.db.ExecContext(ctx, query, status, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (s *ListingStore) Update(ctx context.Context, listing *Listing) error {
+	if listing == nil {
+		return errors.New("listing is nil")
+	}
+	if _, ok := ListingDealTypes[listing.DealType]; !ok {
+		return ErrInvalidDealType
+	}
+	if _, ok := ListingStatuses[listing.Status]; !ok {
+		return ErrInvalidStatus
+	}
+
+	query := `
+        UPDATE listings
+        SET project_id = $1,
+            title = $2,
+            description = $3,
+            property_type = $4,
+            deal_type = $5,
+            price = $6,
+            city = $7,
+            address = $8,
+            rooms = $9,
+            area = $10,
+            floor = $11,
+            total_floors = $12,
+            latitude = $13,
+            longitude = $14,
+            updated_at = NOW()
+        WHERE id = $15
+        RETURNING updated_at
+    `
+
+	var projectID sql.NullInt64
+	if listing.ProjectID != nil {
+		projectID.Valid = true
+		projectID.Int64 = *listing.ProjectID
+	}
+
+	var rooms sql.NullInt32
+	if listing.Rooms != nil {
+		rooms.Valid = true
+		rooms.Int32 = int32(*listing.Rooms)
+	}
+	var area sql.NullFloat64
+	if listing.Area != nil {
+		area.Valid = true
+		area.Float64 = *listing.Area
+	}
+	var floor sql.NullInt32
+	if listing.Floor != nil {
+		floor.Valid = true
+		floor.Int32 = int32(*listing.Floor)
+	}
+	var totalFloors sql.NullInt32
+	if listing.TotalFloors != nil {
+		totalFloors.Valid = true
+		totalFloors.Int32 = int32(*listing.TotalFloors)
+	}
+	var latitude sql.NullFloat64
+	if listing.Latitude != nil {
+		latitude.Valid = true
+		latitude.Float64 = *listing.Latitude
+	}
+	var longitude sql.NullFloat64
+	if listing.Longitude != nil {
+		longitude.Valid = true
+		longitude.Float64 = *listing.Longitude
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query,
+		projectID,
+		listing.Title,
+		listing.Description,
+		listing.PropertyType,
+		listing.DealType,
+		listing.Price,
+		listing.City,
+		listing.Address,
+		rooms,
+		area,
+		floor,
+		totalFloors,
+		latitude,
+		longitude,
+		listing.ID,
+	).Scan(&listing.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (s *ListingStore) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM listings WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}

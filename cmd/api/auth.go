@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -136,7 +137,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		User:  user,
 		Token: plainToken,
 	}
-	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
+	activationURL := app.buildActivationURL(plainToken)
 
 	isProdEnv := app.config.env == "production"
 	vars := struct {
@@ -151,6 +152,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	status, err := app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
 	if err != nil {
 		app.logger.Errorw("error sending welcome email", "error", err)
+
+		if !isProdEnv {
+			app.logger.Warnw("email delivery failed in non-production; registration continues", "user_id", user.ID, "email", user.Email)
+			if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
+				app.internalServerError(w, r, err)
+			}
+			return
+		}
 
 		// rollback user creation if email fails (SAGA pattern)
 		if err := app.store.Users.Delete(ctx, user.ID); err != nil {
@@ -496,7 +505,7 @@ func (app *application) registerCompanyHandler(w http.ResponseWriter, r *http.Re
 		User:  user,
 		Token: plainToken,
 	}
-	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
+	activationURL := app.buildActivationURL(plainToken)
 
 	isProdEnv := app.config.env == "production"
 	vars := struct {
@@ -510,6 +519,14 @@ func (app *application) registerCompanyHandler(w http.ResponseWriter, r *http.Re
 	status, err := app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
 	if err != nil {
 		app.logger.Errorw("error sending welcome email", "error", err)
+
+		if !isProdEnv {
+			app.logger.Warnw("email delivery failed in non-production; registration continues", "user_id", user.ID, "email", user.Email, "company_id", company.ID)
+			if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
+				app.internalServerError(w, r, err)
+			}
+			return
+		}
 
 		if err := app.store.Users.Delete(ctx, user.ID); err != nil {
 			app.logger.Errorw("error deleting user", "error", err)
@@ -541,4 +558,17 @@ func (app *application) logLoginEvent(r *http.Request, userID *int64, email stri
 	}
 
 	return app.store.LoginEvents.Create(r.Context(), event)
+}
+
+func (app *application) buildActivationURL(token string) string {
+	base := strings.TrimRight(app.config.frontendURL, "/")
+	escapedToken := url.QueryEscape(token)
+
+	// In development we prefer query token, because static servers often do not
+	// support SPA deep links like /confirm/{token} without extra rewrite config.
+	if app.config.env != "production" {
+		return fmt.Sprintf("%s/?token=%s", base, escapedToken)
+	}
+
+	return fmt.Sprintf("%s/confirm/%s", base, escapedToken)
 }

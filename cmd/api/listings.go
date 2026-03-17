@@ -16,6 +16,12 @@ type ProjectPayload struct {
 	City        string `json:"city" validate:"required,max=100"`
 }
 
+type UpdateProjectPayload struct {
+	Name        *string `json:"name" validate:"omitempty,max=255"`
+	Description *string `json:"description" validate:"omitempty,max=2000"`
+	City        *string `json:"city" validate:"omitempty,max=100"`
+}
+
 type ListingMediaPayload struct {
 	URL      string `json:"url" validate:"required,url"`
 	Position int    `json:"position" validate:"gte=0"`
@@ -46,6 +52,22 @@ type CreateListingPayload struct {
 	Rent         *RentConstraintsPayload `json:"rent_constraints"`
 	Latitude     *float64                `json:"latitude" validate:"omitempty,min=-90,max=90"`
 	Longitude    *float64                `json:"longitude" validate:"omitempty,min=-180,max=180"`
+}
+
+type UpdateListingPayload struct {
+	ProjectID    *int64   `json:"project_id" validate:"omitempty,gt=0"`
+	Title        *string  `json:"title" validate:"omitempty,max=255"`
+	Description  *string  `json:"description" validate:"omitempty"`
+	PropertyType *string  `json:"property_type" validate:"omitempty,max=50"`
+	Price        *int64   `json:"price" validate:"omitempty,gt=0"`
+	City         *string  `json:"city" validate:"omitempty,max=100"`
+	Address      *string  `json:"address" validate:"omitempty,max=500"`
+	Rooms        *int     `json:"rooms" validate:"omitempty,min=0,max=20"`
+	Area         *float64 `json:"area" validate:"omitempty,gt=0"`
+	Floor        *int     `json:"floor" validate:"omitempty,min=0,max=200"`
+	TotalFloors  *int     `json:"total_floors" validate:"omitempty,min=0,max=200"`
+	Latitude     *float64 `json:"latitude" validate:"omitempty,min=-90,max=90"`
+	Longitude    *float64 `json:"longitude" validate:"omitempty,min=-180,max=180"`
 }
 
 type ListListingsQuery struct {
@@ -153,6 +175,223 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := app.jsonResponse(w, http.StatusCreated, project); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// listProjectsHandler godoc
+//
+//	@Summary		List projects (developer)
+//	@Description	Returns all projects of the current developer company
+//	@Tags			projects
+//	@Produce		json
+//	@Success		200	{array}		store.Project
+//	@Failure		401	{object}	error
+//	@Failure		403	{object}	error
+//	@Failure		500	{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/projects [get]
+func (app *application) listProjectsHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+	if user.Role.Name != store.RoleDeveloper || user.CompanyID == nil {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	projects, err := app.store.Projects.ListByCompany(r.Context(), *user.CompanyID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, projects); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// getProjectHandler godoc
+//
+//	@Summary		Get project by ID (developer)
+//	@Description	Returns a single project if it belongs to the current developer company
+//	@Tags			projects
+//	@Produce		json
+//	@Param			projectID	path		int	true	"Project ID"
+//	@Success		200			{object}	store.Project
+//	@Failure		400			{object}	error
+//	@Failure		401			{object}	error
+//	@Failure		403			{object}	error
+//	@Failure		404			{object}	error
+//	@Failure		500			{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/projects/{projectID} [get]
+func (app *application) getProjectHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+	if user.Role.Name != store.RoleDeveloper || user.CompanyID == nil {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	projectID, err := strconv.ParseInt(chi.URLParam(r, "projectID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	project, err := app.store.Projects.GetByID(r.Context(), projectID)
+	if err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if project.CompanyID != *user.CompanyID {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, project); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// updateProjectHandler godoc
+//
+//	@Summary		Update project (developer)
+//	@Description	Partially updates project fields for current developer company
+//	@Tags			projects
+//	@Accept			json
+//	@Produce		json
+//	@Param			projectID	path		int				true	"Project ID"
+//	@Param			payload		body		UpdateProjectPayload	true	"Fields to update"
+//	@Success		200			{object}	store.Project
+//	@Failure		400			{object}	error
+//	@Failure		401			{object}	error
+//	@Failure		403			{object}	error
+//	@Failure		404			{object}	error
+//	@Failure		500			{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/projects/{projectID} [patch]
+func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+	if user.Role.Name != store.RoleDeveloper || user.CompanyID == nil {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	projectID, err := strconv.ParseInt(chi.URLParam(r, "projectID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	project, err := app.store.Projects.GetByID(r.Context(), projectID)
+	if err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+	if project.CompanyID != *user.CompanyID {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	var payload UpdateProjectPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if payload.Name == nil && payload.Description == nil && payload.City == nil {
+		app.badRequestResponse(w, r, fmt.Errorf("at least one field must be provided"))
+		return
+	}
+
+	if payload.Name != nil {
+		project.Name = *payload.Name
+	}
+	if payload.Description != nil {
+		project.Description = *payload.Description
+	}
+	if payload.City != nil {
+		project.City = *payload.City
+	}
+
+	if err := app.store.Projects.Update(r.Context(), project); err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, project); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// deleteProjectHandler godoc
+//
+//	@Summary		Delete project (developer)
+//	@Description	Deletes project owned by current developer company. Related listings are preserved with project_id set to null.
+//	@Tags			projects
+//	@Produce		json
+//	@Param			projectID	path		int	true	"Project ID"
+//	@Success		204			{string}	string	"Deleted"
+//	@Failure		400			{object}	error
+//	@Failure		401			{object}	error
+//	@Failure		403			{object}	error
+//	@Failure		404			{object}	error
+//	@Failure		500			{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/projects/{projectID} [delete]
+func (app *application) deleteProjectHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+	if user.Role.Name != store.RoleDeveloper || user.CompanyID == nil {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	projectID, err := strconv.ParseInt(chi.URLParam(r, "projectID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	project, err := app.store.Projects.GetByID(r.Context(), projectID)
+	if err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+	if project.CompanyID != *user.CompanyID {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	if err := app.store.Projects.Delete(r.Context(), projectID); err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
 		app.internalServerError(w, r, err)
 	}
 }
@@ -387,6 +626,199 @@ func (app *application) getListingHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := app.jsonResponse(w, http.StatusOK, listing); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// updateListingHandler godoc
+//
+//	@Summary		Update listing (agency/developer)
+//	@Description	Partially updates listing fields for current company owner
+//	@Tags			listings
+//	@Accept			json
+//	@Produce		json
+//	@Param			listingID	path		int				true	"Listing ID"
+//	@Param			payload		body		UpdateListingPayload	true	"Fields to update"
+//	@Success		200			{object}	store.Listing
+//	@Failure		400			{object}	error
+//	@Failure		401			{object}	error
+//	@Failure		403			{object}	error
+//	@Failure		404			{object}	error
+//	@Failure		500			{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/listings/{listingID} [patch]
+func (app *application) updateListingHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+	if user.CompanyID == nil || (user.Role.Name != store.RoleAgency && user.Role.Name != store.RoleDeveloper) {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	listingID, err := strconv.ParseInt(chi.URLParam(r, "listingID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	listing, err := app.store.Listings.GetByID(r.Context(), listingID)
+	if err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+	if listing.CompanyID != *user.CompanyID {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	var payload UpdateListingPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if payload.ProjectID == nil && payload.Title == nil && payload.Description == nil && payload.PropertyType == nil && payload.Price == nil && payload.City == nil && payload.Address == nil && payload.Rooms == nil && payload.Area == nil && payload.Floor == nil && payload.TotalFloors == nil && payload.Latitude == nil && payload.Longitude == nil {
+		app.badRequestResponse(w, r, fmt.Errorf("at least one field must be provided"))
+		return
+	}
+
+	if payload.ProjectID != nil {
+		project, err := app.store.Projects.GetByID(r.Context(), *payload.ProjectID)
+		if err != nil {
+			if err == store.ErrNotFound {
+				app.notFoundResponse(w, r, err)
+				return
+			}
+			app.internalServerError(w, r, err)
+			return
+		}
+		if project.CompanyID != *user.CompanyID {
+			app.forbiddenResponse(w, r)
+			return
+		}
+		listing.ProjectID = payload.ProjectID
+	}
+
+	if payload.Title != nil {
+		listing.Title = *payload.Title
+	}
+	if payload.Description != nil {
+		listing.Description = *payload.Description
+	}
+	if payload.PropertyType != nil {
+		listing.PropertyType = *payload.PropertyType
+	}
+	if payload.Price != nil {
+		listing.Price = *payload.Price
+	}
+	if payload.City != nil {
+		listing.City = *payload.City
+	}
+	if payload.Address != nil {
+		listing.Address = *payload.Address
+	}
+	if payload.Rooms != nil {
+		listing.Rooms = payload.Rooms
+	}
+	if payload.Area != nil {
+		listing.Area = payload.Area
+	}
+	if payload.Floor != nil {
+		listing.Floor = payload.Floor
+	}
+	if payload.TotalFloors != nil {
+		listing.TotalFloors = payload.TotalFloors
+	}
+	if payload.Latitude != nil {
+		listing.Latitude = payload.Latitude
+	}
+	if payload.Longitude != nil {
+		listing.Longitude = payload.Longitude
+	}
+
+	if err := app.store.Listings.Update(r.Context(), listing); err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		if err == store.ErrInvalidDealType || err == store.ErrInvalidStatus {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	updated, err := app.store.Listings.GetByID(r.Context(), listing.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, updated); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
+// deleteListingHandler godoc
+//
+//	@Summary		Delete listing (agency/developer)
+//	@Description	Deletes listing owned by current company. Related favorites and applications are removed by cascade.
+//	@Tags			listings
+//	@Produce		json
+//	@Param			listingID	path		int	true	"Listing ID"
+//	@Success		204			{string}	string	"Deleted"
+//	@Failure		400			{object}	error
+//	@Failure		401			{object}	error
+//	@Failure		403			{object}	error
+//	@Failure		404			{object}	error
+//	@Failure		500			{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/listings/{listingID} [delete]
+func (app *application) deleteListingHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+	if user.CompanyID == nil || (user.Role.Name != store.RoleAgency && user.Role.Name != store.RoleDeveloper) {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	listingID, err := strconv.ParseInt(chi.URLParam(r, "listingID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	listing, err := app.store.Listings.GetByID(r.Context(), listingID)
+	if err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+	if listing.CompanyID != *user.CompanyID {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
+	if err := app.store.Listings.Delete(r.Context(), listingID); err != nil {
+		if err == store.ErrNotFound {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
 		app.internalServerError(w, r, err)
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"expvar"
 	"runtime"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/sikozonpc/social/internal/env"
 	"github.com/sikozonpc/social/internal/mailer"
 	"github.com/sikozonpc/social/internal/ratelimiter"
+	filestorage "github.com/sikozonpc/social/internal/storage"
 	"github.com/sikozonpc/social/internal/store"
 	"github.com/sikozonpc/social/internal/store/cache"
 	"go.uber.org/zap"
@@ -90,6 +92,14 @@ func main() {
 			RequestsPerTimeFrame: env.GetInt("RATELIMITER_REQUESTS_COUNT", 20),
 			TimeFrame:            time.Second * 5,
 			Enabled:              env.GetBool("RATE_LIMITER_ENABLED", true),
+		},
+		storage: storageConfig{
+			provider:  env.GetString("STORAGE_PROVIDER", "local"),
+			bucket:    env.GetString("STORAGE_BUCKET", ""),
+			region:    env.GetString("STORAGE_REGION", ""),
+			endpoint:  env.GetString("STORAGE_ENDPOINT", ""),
+			keyID:     env.GetString("STORAGE_KEY_ID", ""),
+			secretKey: env.GetString("STORAGE_SECRET_KEY", ""),
 		},
 	}
 
@@ -177,6 +187,26 @@ func main() {
 	store := store.NewStorage(db, cryptor)
 	cacheStorage := cache.NewRedisStorage(rdb)
 
+	var uploader filestorage.Uploader
+	switch cfg.storage.provider {
+	case "", "local":
+		uploader, err = filestorage.NewLocalUploader("./uploads")
+	case "s3":
+		uploader, err = filestorage.NewS3Uploader(context.Background(), filestorage.S3Config{
+			Bucket:    cfg.storage.bucket,
+			Region:    cfg.storage.region,
+			Endpoint:  cfg.storage.endpoint,
+			KeyID:     cfg.storage.keyID,
+			SecretKey: cfg.storage.secretKey,
+		})
+	default:
+		logger.Fatalw("invalid STORAGE_PROVIDER", "provider", cfg.storage.provider)
+	}
+	if err != nil {
+		logger.Fatal(err)
+	}
+	logger.Infow("storage uploader initialized", "provider", cfg.storage.provider)
+
 	app := &application{
 		config:        cfg,
 		store:         store,
@@ -185,6 +215,7 @@ func main() {
 		mailer:        mailClient,
 		authenticator: jwtAuthenticator,
 		rateLimiter:   rateLimiter,
+		uploader:      uploader,
 	}
 
 	// Metrics collected
