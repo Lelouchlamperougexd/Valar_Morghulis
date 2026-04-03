@@ -665,3 +665,25 @@
 }
 
 .btnSubmit:hover { background: #5a8cf5; }
+
+/* ── Settings Avatar & Form ── */
+.profileSection { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
+.avatarWrapper {
+  position: relative; width: 80px; height: 80px; border-radius: 50%;
+  background-color: #f0f7ff; color: #70a0ff; font-size: 24px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;
+}
+.avatarImage { width: 100%; height: 100%; object-fit: cover; }
+.avatarOverlay {
+  position: absolute; inset: 0; background-color: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;
+}
+.avatarWrapper:hover .avatarOverlay { opacity: 1; }
+.uploadInput { display: none; }
+.btnSecondary {
+  height: 38px; padding: 0 16px; border-radius: 8px; background-color: #fff;
+  color: #70a0ff; border: 1px solid #e8e8e8; font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.btnSecondary:hover { border-color: #70a0ff; }
+.formRowContainer { display: flex; gap: 16px; margin-bottom: 14px; }
+.formRowContainer > * { flex: 1; }

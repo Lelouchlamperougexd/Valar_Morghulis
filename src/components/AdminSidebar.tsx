@@ -1,5 +1,6 @@
 import type { FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import s from "../css/Admin.module.css";
 import logo from "../assets/logo.png";
 
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
 
 const AdminSidebar: FunctionComponent<Props> = ({ activeTab, onNav }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   return (
     <aside className={s.sidebar}>
       <div className={s.sidebarTop}>
@@ -45,6 +47,18 @@ const AdminSidebar: FunctionComponent<Props> = ({ activeTab, onNav }) => {
           </div>
         ))}
       </nav>
+      <div style={{ marginTop: "auto", padding: "16px 12px", borderTop: "1px solid #f0f0f0" }}>
+        <div
+          className={s.navItem}
+          style={{ color: "#f5222d" }}
+          onClick={() => { logout(); navigate("/"); }}
+        >
+          <span className={s.navItemIcon} style={{ color: "#f5222d", opacity: 1 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          </span>
+          Выйти
+        </div>
+      </div>
     </aside>
   );
 };

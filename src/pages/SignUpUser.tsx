@@ -1,6 +1,8 @@
 import { useState, type FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../css/SignUp.module.css";
+import { registerUser, getErrorMessage } from "../api/auth";
+import { useAuth } from "../context/AuthContext";
 
 type Props = {
   onClose: () => void;
@@ -9,6 +11,8 @@ type Props = {
 
 const SignUpUser: FunctionComponent<Props> = ({ onClose, onBack }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -20,18 +24,50 @@ const SignUpUser: FunctionComponent<Props> = ({ onClose, onBack }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
 
-  const isValidForm = 
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const isValidForm =
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
-    email.includes("@") && email.includes(".") &&
+    email.includes("@") &&
+    email.includes(".") &&
     phone.trim().length >= 10 &&
-    password.length >= 6 &&
+    password.length >= 8 &&
     password === confirmPassword &&
     agreed;
 
+  const handleSubmit = async () => {
+    if (!isValidForm) return;
+    setError("");
+    setLoading(true);
+
+    try {
+      const data = await registerUser({
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        password,
+        password_confirmation: confirmPassword,
+        phone,
+      });
+
+      // Auto-login: extract token from response
+      const { token, ...user } = data;
+      login(token, user);
+
+      onClose();
+      navigate("/dashboard");
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className={styles.container} style={{ height: 'auto', maxHeight: '90vh' }}>
-      <div className={styles.container18} style={{ position: 'sticky', background: '#fff', zIndex: 10 }}>
+    <div className={styles.container} style={{ height: "auto", maxHeight: "90vh" }}>
+      <div className={styles.container18} style={{ position: "sticky", background: "#fff", zIndex: 10 }}>
         <div className={styles.heading2}>
           <div className={styles.div10}>Регистрация</div>
         </div>
@@ -41,7 +77,7 @@ const SignUpUser: FunctionComponent<Props> = ({ onClose, onBack }) => {
       </div>
 
       <div className={styles.container2Outer}>
-        <div className={styles.paragraph} style={{ marginBottom: '24px', textAlign: 'center', width: '100%' }}>
+        <div className={styles.paragraph} style={{ marginBottom: "24px", textAlign: "center", width: "100%" }}>
           <div className={styles.div}>Шаг 2 из 2</div>
         </div>
 
@@ -49,22 +85,22 @@ const SignUpUser: FunctionComponent<Props> = ({ onClose, onBack }) => {
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.label}>Имя<span>*</span></label>
-              <input type="text" className={styles.input} placeholder="Алуа" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              <input type="text" className={styles.input} placeholder="Алуа" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={loading} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}>Фамилия<span>*</span></label>
-              <input type="text" className={styles.input} placeholder="Садыкова" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <input type="text" className={styles.input} placeholder="Садыкова" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={loading} />
             </div>
           </div>
 
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.label}>Email<span>*</span></label>
-              <input type="email" className={styles.input} placeholder="sadykova@example.kz" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input type="email" className={styles.input} placeholder="sadykova@example.kz" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}>Телефон<span>*</span></label>
-              <input type="tel" className={styles.input} placeholder="+7 700 000 00 00" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <input type="tel" className={styles.input} placeholder="+7 700 000 00 00" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={loading} />
             </div>
           </div>
 
@@ -72,12 +108,13 @@ const SignUpUser: FunctionComponent<Props> = ({ onClose, onBack }) => {
             <div className={styles.formGroup}>
               <label className={styles.label}>Пароль<span>*</span></label>
               <div className={styles.passwordWrapper}>
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  className={`${styles.input} ${styles.passwordInput}`} 
-                  placeholder="••••••••" 
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className={`${styles.input} ${styles.passwordInput}`}
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
                 <button type="button" className={styles.eyeButton} onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? (
@@ -97,12 +134,13 @@ const SignUpUser: FunctionComponent<Props> = ({ onClose, onBack }) => {
             <div className={styles.formGroup}>
               <label className={styles.label}>Повторите пароль<span>*</span></label>
               <div className={styles.passwordWrapper}>
-                <input 
-                  type={showConfirmPassword ? "text" : "password"} 
-                  className={`${styles.input} ${styles.passwordInput}`} 
-                  placeholder="••••••••" 
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  className={`${styles.input} ${styles.passwordInput}`}
+                  placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
                 />
                 <button type="button" className={styles.eyeButton} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                   {showConfirmPassword ? (
@@ -121,28 +159,39 @@ const SignUpUser: FunctionComponent<Props> = ({ onClose, onBack }) => {
             </div>
           </div>
 
+          {/* Password mismatch hint */}
+          {confirmPassword.length > 0 && password !== confirmPassword && (
+            <div style={{ color: "#e53e3e", fontSize: "12px", marginTop: "-8px", marginBottom: "4px" }}>
+              Пароли не совпадают
+            </div>
+          )}
+
           <label className={styles.checkboxRow}>
             <input type="checkbox" className={styles.checkbox} checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
             <span>Я принимаю условия сервиса и согласен(а) на обработку персональных данных.</span>
           </label>
 
+          {/* Error */}
+          {error && (
+            <div style={{ color: "#e53e3e", fontSize: "13px", padding: "8px 12px", background: "#fff5f5", borderRadius: "6px", border: "1px solid #fed7d7" }}>
+              {error}
+            </div>
+          )}
+
           <div className={styles.actions}>
-            <button className={styles.buttonSecondary} onClick={onBack}>Назад</button>
-            <button 
-              className={styles.buttonPrimary} 
-              disabled={!isValidForm}
+            <button className={styles.buttonSecondary} onClick={onBack} disabled={loading}>Назад</button>
+            <button
+              className={styles.buttonPrimary}
+              disabled={!isValidForm || loading}
               style={{
-                backgroundColor: isValidForm ? '#70a0ff' : '#d2d2d2',
-                cursor: isValidForm ? 'pointer' : 'not-allowed',
-                transition: 'all 0.3s ease',
+                backgroundColor: isValidForm && !loading ? "#70a0ff" : "#d2d2d2",
+                cursor: isValidForm && !loading ? "pointer" : "not-allowed",
+                transition: "all 0.3s ease",
+                opacity: loading ? 0.7 : 1,
               }}
-              onClick={() => {
-                if (!isValidForm) return;
-                onClose();
-                navigate('/dashboard');
-              }}
+              onClick={handleSubmit}
             >
-              Зарегистрироваться
+              {loading ? "Регистрация..." : "Зарегистрироваться"}
             </button>
           </div>
         </div>

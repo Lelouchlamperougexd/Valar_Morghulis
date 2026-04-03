@@ -436,7 +436,7 @@ const Home: FunctionComponent = () => {
                 <div className={styles.container58}>
                   <div className={styles.heading1}>
                     <div className={styles.div50}>
-                      Qonys для агентств и застройщиков
+                      Платформа для агентств и застройщиков
                     </div>
                   </div>
                   <div className={styles.paragraph11}>

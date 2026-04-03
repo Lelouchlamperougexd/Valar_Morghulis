@@ -1,5 +1,7 @@
 import { useState, useRef, type FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 import styles from "../css/Dashboard.module.css";
 import type { Property } from "../components/MapComponent";
 
@@ -637,6 +639,7 @@ function ApplicationDetailModal({ app, onClose }: { app: ApplicationData; onClos
 
 const Dashboard: FunctionComponent = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   // Modals
@@ -1001,7 +1004,14 @@ const Dashboard: FunctionComponent = () => {
     <div className={styles.dashboardPage}>
       {/* Sidebar */}
       <aside className={styles.sidebar}>
-        <button className={styles.backButton} onClick={() => navigate("/")}>← На главную</button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 32px", marginBottom: 24 }}>
+          <img src={logo} alt="Qonys Logo" style={{ height: 32, objectFit: "contain" }} />
+          <span style={{ fontSize: 16, fontWeight: 700, color: "#1a1a2e", letterSpacing: "-0.3px" }}>Qonys</span>
+        </div>
+        <button className={styles.backButton} onClick={() => navigate("/")}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 2 }}><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          На главную
+        </button>
         <div className={styles.sidebarTitle}>Личный кабинет</div>
         <nav className={styles.navMenu}>
           {([
@@ -1026,6 +1036,18 @@ const Dashboard: FunctionComponent = () => {
             <img src="/assets/settings.svg" alt="" style={{ width: 18, opacity: activeTab === "settings" ? 1 : 0.5 }} /> Настройки
           </div>
         </nav>
+        <div style={{ marginTop: "auto", padding: "16px 24px", borderTop: "1px solid #f0f0f0" }}>
+          <div
+            className={styles.navItem}
+            style={{ color: "#f5222d", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}
+            onClick={() => { logout(); navigate("/"); }}
+          >
+            <span style={{ display: "flex", alignItems: "center", opacity: 1 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            </span>
+            Выйти
+          </div>
+        </div>
       </aside>
 
       {/* Main Content */}
