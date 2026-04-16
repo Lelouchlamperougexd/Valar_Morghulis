@@ -5,6 +5,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000,
 });
 
 // Автоматически добавляет токен к каждому запросу
@@ -15,5 +16,23 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Логирование ошибок в dev режиме
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (import.meta.env.DEV) {
+      console.error(
+        '[API Error]',
+        error?.config?.method?.toUpperCase(),
+        error?.config?.url,
+        '→',
+        error?.response?.status,
+        error?.response?.data
+      );
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

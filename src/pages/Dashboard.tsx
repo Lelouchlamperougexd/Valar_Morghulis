@@ -1,990 +1,762 @@
-import { useState, useRef, type FunctionComponent } from "react";
+import { useState, useEffect, useRef, useCallback, type FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import logo from "../assets/logo.png";
 import styles from "../css/Dashboard.module.css";
-import type { Property } from "../components/MapComponent";
+import {
+  getDashboardOverview,
+  getFavorites,
+  removeFavorite,
+  getMyApplications,
+  getChats,
+  getMessages,
+  sendMessage,
+  updateProfile,
+  changePassword,
+  statusLabel,
+  statusColor,
+  type DashboardOverview,
+  type FavoriteListing,
+  type Application,
+  type ChatSummary,
+  type ApplicationMessage,
+} from "../api/dashboard";
+import { getErrorMessage } from "../api/auth";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-interface ExtendedProperty extends Property {
-  dealType: "Аренда" | "Продажа";
-  priceUnit?: string;       // « /мес » for rent
-  deposit?: string;         // security deposit for rent
-  utilities?: string;       // included / extra
-  minTerm?: string;         // min rental term
-  propertyType: string;     // квартира / студия / апартаменты / дом
-  floor: number;
-  totalFloors: number;
-  livingArea?: number;
-  kitchenArea?: number;
-  ceilingH?: string;
-  renovation: string;       // тип ремонта
-  buildingType: string;     // панельный / кирпичный / монолит
-  yearBuilt?: number;
-  bathroom: string;         // раздельный / совмещённый / 2 санузла
-  balcony?: string;         // балкон / лоджия / нет
-  parking?: string;
-  elevator?: string;
-  amenities: string[];      // мебель, техника, интернет …
-  restrictions?: string[];  // без животных, без детей …
-  metro?: string;
-  metroWalk?: string;
-  agency: string;
-  agencyPhone: string;
-  description: string;
-}
-
-const mockFavorites: ExtendedProperty[] = [
-  {
-    id: "1",
-    title: "Двухкомнатная квартира в центре",
-    dealType: "Продажа",
-    propertyType: "Квартира",
-    price: 12500000,
-    address: "Москва, ЦАО, ул. Тверская, 18",
-    metro: "Тверская", metroWalk: "5 мин пешком",
-    lat: 55.7558, lng: 37.6173,
-    rooms: 2,
-    area: 65, livingArea: 40, kitchenArea: 12,
-    floor: 5, totalFloors: 12,
-    ceilingH: "2.85 м",
-    renovation: "Евроремонт",
-    buildingType: "Монолит",
-    yearBuilt: 2019,
-    bathroom: "Раздельный",
-    balcony: "Балкон застеклённый",
-    parking: "Подземный паркинг",
-    elevator: "2 лифта (пассажирский + грузовой)",
-    amenities: ["Встроенная кухня", "Вся бытовая техника", "Кондиционер", "Wi-Fi"],
-    agency: "Элит Недвижимость",
-    agencyPhone: "+7 (495) 123-45-67",
-    description: "Просторная квартира в монолитном доме бизнес-класса. Панорамные окна с видом на центр города. Качественный авторский ремонт, встроенная мебель, вся техника. Закрытая охраняемая территория, видеонаблюдение. Инфраструктура: ТЦ, рестораны, школы — в пешей доступности.",
-    imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: "2",
-    title: "Трёхкомнатная квартира с видом",
-    dealType: "Аренда",
-    propertyType: "Квартира",
-    price: 85000,
-    priceUnit: "/мес",
-    deposit: "85 000 ₸ (1 месяц)",
-    utilities: "Коммунальные платежи — отдельно (~12 000 ₸)",
-    minTerm: "От 6 месяцев",
-    address: "Москва, ЮЗАО, Ленинский пр-т, 91",
-    metro: "Проспект Вернадского", metroWalk: "8 мин пешком",
-    lat: 55.6628, lng: 37.5303,
-    rooms: 3,
-    area: 92, livingArea: 60, kitchenArea: 18,
-    floor: 8, totalFloors: 17,
-    ceilingH: "3.0 м",
-    renovation: "Дизайнерский ремонт",
-    buildingType: "Монолит-кирпич",
-    yearBuilt: 2021,
-    bathroom: "2 санузла",
-    balcony: "Две лоджии",
-    parking: "1 место в паркинге включено",
-    elevator: "Есть",
-    amenities: ["Полностью меблирована", "Вся техника", "Посудомойка", "Интернет включён", "Кондиционер"],
-    restrictions: ["Без животных", "Некурящая квартира"],
-    agency: "ПремьерГрад",
-    agencyPhone: "+7 (499) 234-56-78",
-    description: "Роскошная квартира с панорамным видом на Москву-реку. Авторский дизайн-проект, полностью меблирована. Жилой комплекс бизнес-класса с охраной, консьерж-сервисом и подземным паркингом. Идеальна для семьи с детьми.",
-    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: "3",
-    title: "Студия в новостройке",
-    dealType: "Аренда",
-    propertyType: "Студия",
-    price: 45000,
-    priceUnit: "/мес",
-    deposit: "45 000 ₸ (1 месяц)",
-    utilities: "Все коммунальные включены в стоимость",
-    minTerm: "От 3 месяцев",
-    address: "Москва, САО, Дмитровское ш., 13к2",
-    metro: "Дмитровская", metroWalk: "12 мин пешком",
-    lat: 55.8158, lng: 37.5193,
-    rooms: 1,
-    area: 35, kitchenArea: 8,
-    floor: 3, totalFloors: 25,
-    ceilingH: "2.75 м",
-    renovation: "Чистовая отделка",
-    buildingType: "Монолит",
-    yearBuilt: 2023,
-    bathroom: "Совмещённый",
-    balcony: "Французский балкон",
-    parking: "Гостевая парковка",
-    elevator: "Есть",
-    amenities: ["Кровать", "Шкаф", "Холодильник", "Стиральная машина", "Кондиционер", "Wi-Fi"],
-    restrictions: ["Можно с кошками", "Без курения"],
-    agency: "Столичная Недвижимость",
-    agencyPhone: "+7 (495) 345-67-89",
-    description: "Уютная студия в новом ЖК. Современная чистовая отделка, базовая мебель и техника. Тихий двор, охраняемая парковка. Отличный вариант для молодого специалиста или студента.",
-    imageUrl: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
-  }
-];
-
-
-interface ApplicationData {
-  id: number;
-  title: string;
-  subtitle: string;
-  status: string;
-  statusClass: string;
-  date: string;
-  // Filled form answers
-  answers: {
-    name: string;
-    phone: string;
-    email: string;
-    moveDate: string;
-    duration: string;
-    family: string;
-    pets: string;
-    income: string;
-    comment: string;
-  };
-}
-
-const mockApplications: ApplicationData[] = [
-  {
-    id: 1,
-    title: "Двухкомнатная квартира в центре",
-    subtitle: "Элит Недвижимость",
-    status: "В обработке",
-    statusClass: styles.statusPending,
-    date: "15.02.2026",
-    answers: {
-      name: "Иван Петров",
-      phone: "+7 (999) 123-45-67",
-      email: "ivan.petrov@email.com",
-      moveDate: "01.03.2026",
-      duration: "12 месяцев",
-      family: "2 человека (я и супруга)",
-      pets: "Нет",
-      income: "Официально трудоустроен, доход 180 000 ₸/мес",
-      comment: "Рассматриваю долгосрочную аренду. Готов предоставить документы."
-    }
-  },
-  {
-    id: 2,
-    title: "Студия в новостройке",
-    subtitle: "ПремьерГрад",
-    status: "Получен ответ",
-    statusClass: styles.statusResponded,
-    date: "13.02.2026",
-    answers: {
-      name: "Иван Петров",
-      phone: "+7 (999) 123-45-67",
-      email: "ivan.petrov@email.com",
-      moveDate: "15.02.2026",
-      duration: "6 месяцев",
-      family: "1 человек (только я)",
-      pets: "Кошка",
-      income: "Фрилансер, средний доход 120 000 ₸/мес",
-      comment: "Интересует студия для работы из дома. Тихий район приоритет."
-    }
-  },
-  {
-    id: 3,
-    title: "Трёхкомнатная квартира",
-    subtitle: "Столичная Недвижимость",
-    status: "Закрыта",
-    statusClass: styles.statusClosed,
-    date: "10.02.2026",
-    answers: {
-      name: "Иван Петров",
-      phone: "+7 (999) 123-45-67",
-      email: "ivan.petrov@email.com",
-      moveDate: "20.02.2026",
-      duration: "24 месяца",
-      family: "4 человека (семья с детьми)",
-      pets: "Нет",
-      income: "Официально трудоустроен, доход 250 000 ₸/мес",
-      comment: "Нужна квартира рядом со школой № 15."
-    }
-  }
-];
-
-interface ChatMessage {
-  id: number;
-  text: string;
-  time: string;
-  isSent: boolean;
-}
-
-interface Chat {
-  id: number;
-  sender: string;
-  preview: string;
-  date: string;
-  hasIndicator: boolean;
-  messages: ChatMessage[];
-}
-
-const initialChats: Chat[] = [
-  {
-    id: 1,
-    sender: "Элит Недвижимость",
-    preview: "Здравствуйте! Когда удобно посмотреть квартиру?",
-    date: "14:30",
-    hasIndicator: true,
-    messages: [
-      { id: 1, text: "Здравствуйте! Когда удобно посмотреть квартиру?", time: "14:30", isSent: false },
-      { id: 2, text: "Спасибо за информацию!", time: "14:35", isSent: true }
-    ]
-  },
-  {
-    id: 2,
-    sender: "ПремьерГрад",
-    preview: "Отправили вам дополнительные фотографии.",
-    date: "Вчера",
-    hasIndicator: false,
-    messages: [
-      { id: 1, text: "Отправили вам дополнительные фотографии.", time: "Вчера", isSent: false }
-    ]
-  }
-];
+const logo = "/assets/logo.png";
 
 type TabId = "overview" | "favorites" | "applications" | "messages" | "settings";
 
-// ─── Application Form Modal ───────────────────────────────────────────────────
-
-interface AppFormModalProps {
-  propertyTitle: string;
-  onClose: () => void;
-  onSubmit: (answers: ApplicationData["answers"]) => void;
+// ─── Skeleton loader ──────────────────────────────────────────────────────────
+function Skeleton({ h = 18, w = "100%", r = 8 }: { h?: number; w?: string | number; r?: number }) {
+  return (
+    <div
+      style={{
+        height: h, width: w, borderRadius: r,
+        background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)",
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.4s infinite",
+      }}
+    />
+  );
 }
 
-function ApplicationFormModal({ propertyTitle, onClose, onSubmit }: AppFormModalProps) {
-  const [form, setForm] = useState({
-    name: "Иван Петров",
-    phone: "+7 (999) 123-45-67",
-    email: "ivan.petrov@email.com",
-    moveDate: "",
-    duration: "6 месяцев",
-    family: "",
-    pets: "Нет",
-    income: "",
-    comment: ""
-  });
-
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm(prev => ({ ...prev, [k]: e.target.value }));
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "10px 12px", borderRadius: 8,
-    border: "1.5px solid #e8e8e8", fontSize: 13, fontFamily: "Inter, sans-serif",
-    outline: "none", boxSizing: "border-box", color: "#3a3a3a"
-  };
-  const labelStyle: React.CSSProperties = {
-    fontSize: 12, color: "#939393", textTransform: "uppercase",
-    letterSpacing: "0.4px", marginBottom: 5, display: "block", fontWeight: 500
-  };
-
+// ─── Empty state ──────────────────────────────────────────────────────────────
+function EmptyState({ icon, text, sub }: { icon: string; text: string; sub?: string }) {
   return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
-      zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16
-    }}>
-      <div style={{
-        background: "#fff", borderRadius: 16, width: "100%", maxWidth: 540,
-        maxHeight: "90vh", overflowY: "auto", padding: 28, boxShadow: "0 20px 60px rgba(0,0,0,0.2)"
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
-          <div>
-            <div style={{ fontSize: 17, fontWeight: 600, color: "#1a1a2e" }}>Подать заявку</div>
-            <div style={{ fontSize: 13, color: "#939393", marginTop: 2 }}>{propertyTitle}</div>
-          </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#939393", lineHeight: 1 }}>×</button>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={labelStyle}>Имя</label>
-              <input style={inputStyle} value={form.name} onChange={set("name")} placeholder="Ваше имя" />
-            </div>
-            <div>
-              <label style={labelStyle}>Телефон</label>
-              <input style={inputStyle} value={form.phone} onChange={set("phone")} placeholder="+7 (___)___-__-__" />
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Email</label>
-            <input style={inputStyle} value={form.email} onChange={set("email")} placeholder="email@example.com" type="email" />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={labelStyle}>Желаемая дата въезда</label>
-              <input style={inputStyle} value={form.moveDate} onChange={set("moveDate")} placeholder="дд.мм.гггг" />
-            </div>
-            <div>
-              <label style={labelStyle}>Срок аренды</label>
-              <select style={{ ...inputStyle, background: "#fff" }} value={form.duration} onChange={set("duration")}>
-                <option>3 месяца</option>
-                <option>6 месяцев</option>
-                <option>12 месяцев</option>
-                <option>24 месяца</option>
-                <option>Бессрочно</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Состав семьи / кто будет проживать</label>
-            <input style={inputStyle} value={form.family} onChange={set("family")} placeholder="Например: 2 взрослых, 1 ребёнок" />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={labelStyle}>Домашние животные</label>
-              <select style={{ ...inputStyle, background: "#fff" }} value={form.pets} onChange={set("pets")}>
-                <option>Нет</option>
-                <option>Кошка</option>
-                <option>Собака</option>
-                <option>Другое</option>
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>Источник дохода</label>
-              <input style={inputStyle} value={form.income} onChange={set("income")} placeholder="Трудоустроен, фриланс..." />
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Дополнительный комментарий</label>
-            <textarea
-              style={{ ...inputStyle, minHeight: 80, resize: "vertical" }}
-              value={form.comment}
-              onChange={set("comment")}
-              placeholder="Любые пожелания или вопросы..."
-            />
-          </div>
-          <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-            <button
-              onClick={() => onSubmit(form)}
-              style={{
-                flex: 1, padding: "12px 0", background: "#70a0ff", color: "#fff",
-                border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
-                cursor: "pointer", fontFamily: "Inter, sans-serif"
-              }}
-            >
-              Отправить заявку
-            </button>
-            <button onClick={onClose} style={{
-              padding: "12px 20px", background: "#f5f5f5", color: "#3a3a3a",
-              border: "none", borderRadius: 10, fontSize: 14, cursor: "pointer",
-              fontFamily: "Inter, sans-serif"
-            }}>Отмена</button>
-          </div>
-        </div>
-      </div>
+    <div style={{ textAlign: "center", padding: "48px 24px", color: "#939393" }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>{icon}</div>
+      <div style={{ fontSize: 15, fontWeight: 600, color: "#3a3a3a", marginBottom: 4 }}>{text}</div>
+      {sub && <div style={{ fontSize: 13, color: "#b0b0b0" }}>{sub}</div>}
     </div>
   );
 }
 
-// ─── Property Card Modal ──────────────────────────────────────────────────────
-
-interface PropertyModalProps {
-  property: ExtendedProperty;
-  onClose: () => void;
-  onApply: () => void;
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
+// ─── Status badge ─────────────────────────────────────────────────────────────
+function StatusBadge({ status }: { status: string }) {
+  const color = statusColor(status);
   return (
     <span style={{
-      display: "inline-block", padding: "3px 10px", background: "#f0f4ff",
-      color: "#70a0ff", border: "1px solid #c2d6ff", borderRadius: 20,
-      fontSize: 12, fontWeight: 500, whiteSpace: "nowrap"
-    }}>{children}</span>
+      display: "inline-flex", alignItems: "center", padding: "2px 10px",
+      borderRadius: 20, fontSize: 12, fontWeight: 500,
+      background: `${color}18`, color, border: `1px solid ${color}40`,
+    }}>
+      {statusLabel(status)}
+    </span>
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.5px", color: "#939393", fontWeight: 600, marginBottom: 8, marginTop: 20 }}>
-      {children}
-    </div>
-  );
+// ─── Date format ──────────────────────────────────────────────────────────────
+function fmtDate(iso: string) {
+  if (!iso) return "—";
+  try {
+    return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
+      .format(new Date(iso));
+  } catch { return iso.slice(0, 10); }
 }
 
-function InfoRow({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: 13 }}>
-      <span style={{ color: "#939393" }}>{label}</span>
-      <span style={{ color: "#3a3a3a", fontWeight: 500, textAlign: "right", maxWidth: "58%" }}>{value}</span>
-    </div>
-  );
-}
-
-function PropertyModal({ property: p, onClose, onApply }: PropertyModalProps) {
-  const [tab, setTab] = useState<"info" | "building" | "rent">("info");
-  const tabs = [
-    { id: "info" as const, label: "Объект" },
-    { id: "building" as const, label: "Дом" },
-    ...(p.dealType === "Аренда" ? [{ id: "rent" as const, label: "Аренда" }] : []),
-  ];
-
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 560, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.22)" }}>
-
-        {/* Photo */}
-        <div style={{ position: "relative" }}>
-          <img src={p.imageUrl} alt={p.title} style={{ width: "100%", height: 210, objectFit: "cover", borderRadius: "16px 16px 0 0", display: "block" }} />
-          <button onClick={onClose} style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", width: 34, height: 34, color: "#fff", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>×</button>
-          <div style={{ position: "absolute", bottom: 12, left: 14, background: p.dealType === "Аренда" ? "#70a0ff" : "#52c97a", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>{p.dealType}</div>
-        </div>
-
-        <div style={{ padding: "18px 22px 24px" }}>
-          {/* Title & price */}
-          <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.4px", color: "#939393", marginBottom: 4 }}>{p.propertyType} · {p.address}</div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#1a1a2e", marginBottom: 4 }}>{p.title}</div>
-          {p.metro && <div style={{ fontSize: 12, color: "#939393", marginBottom: 10 }}>🚇 {p.metro} — {p.metroWalk}</div>}
-
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 16 }}>
-            <span style={{ fontSize: 24, fontWeight: 800, color: "#70a0ff" }}>{p.price.toLocaleString("ru-RU")} ₸</span>
-            {p.priceUnit && <span style={{ fontSize: 14, color: "#939393" }}>{p.priceUnit}</span>}
-          </div>
-
-          {/* Key stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
-            {[
-              { v: p.rooms, l: "Комнат" },
-              { v: `${p.area} м²`, l: "Общая" },
-              { v: p.livingArea ? `${p.livingArea} м²` : "—", l: "Жилая" },
-              { v: `${p.floor}/${p.totalFloors}`, l: "Этаж" },
-            ].map(it => (
-              <div key={it.l} style={{ background: "#f7f9fa", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a2e" }}>{it.v}</div>
-                <div style={{ fontSize: 10, color: "#939393", marginTop: 2 }}>{it.l}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tab bar */}
-          <div style={{ display: "flex", gap: 6, marginBottom: 2, borderBottom: "1.5px solid #f0f0f0", paddingBottom: 0 }}>
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{
-                padding: "7px 14px", fontSize: 13, fontWeight: tab === t.id ? 600 : 400,
-                color: tab === t.id ? "#70a0ff" : "#939393",
-                background: "none", border: "none", cursor: "pointer",
-                borderBottom: tab === t.id ? "2px solid #70a0ff" : "2px solid transparent",
-                fontFamily: "Inter, sans-serif", marginBottom: -1.5, transition: "all .15s"
-              }}>{t.label}</button>
-            ))}
-          </div>
-
-          {/* Tab: Object */}
-          {tab === "info" && (
-            <div>
-              <SectionLabel>Планировка и площадь</SectionLabel>
-              <InfoRow label="Тип" value={p.propertyType} />
-              <InfoRow label="Комнат" value={p.rooms} />
-              <InfoRow label="Общая площадь" value={`${p.area} м²`} />
-              {p.livingArea && <InfoRow label="Жилая площадь" value={`${p.livingArea} м²`} />}
-              {p.kitchenArea && <InfoRow label="Площадь кухни" value={`${p.kitchenArea} м²`} />}
-              {p.ceilingH && <InfoRow label="Высота потолков" value={p.ceilingH} />}
-              <InfoRow label="Этаж" value={`${p.floor} из ${p.totalFloors}`} />
-
-              <SectionLabel>Отделка и интерьер</SectionLabel>
-              <InfoRow label="Ремонт" value={p.renovation} />
-              <InfoRow label="Санузел" value={p.bathroom} />
-              {p.balcony && <InfoRow label="Балкон / лоджия" value={p.balcony} />}
-              {p.parking && <InfoRow label="Парковка" value={p.parking} />}
-              {p.elevator && <InfoRow label="Лифт" value={p.elevator} />}
-
-              {p.amenities.length > 0 && (
-                <>
-                  <SectionLabel>Удобства</SectionLabel>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {p.amenities.map(a => <Chip key={a}>{a}</Chip>)}
-                  </div>
-                </>
-              )}
-
-              <SectionLabel>Описание</SectionLabel>
-              <div style={{ fontSize: 13, color: "#3a3a3a", lineHeight: 1.65 }}>{p.description}</div>
-            </div>
-          )}
-
-          {/* Tab: Building */}
-          {tab === "building" && (
-            <div>
-              <SectionLabel>О доме</SectionLabel>
-              <InfoRow label="Тип дома" value={p.buildingType} />
-              {p.yearBuilt && <InfoRow label="Год постройки" value={p.yearBuilt} />}
-              <InfoRow label="Этажей в доме" value={p.totalFloors} />
-              {p.elevator && <InfoRow label="Лифт" value={p.elevator} />}
-              {p.parking && <InfoRow label="Парковка" value={p.parking} />}
-
-              <SectionLabel>Расположение</SectionLabel>
-              <InfoRow label="Адрес" value={p.address} />
-              {p.metro && <InfoRow label="Метро" value={`${p.metro} (${p.metroWalk})`} />}
-            </div>
-          )}
-
-          {/* Tab: Rent conditions */}
-          {tab === "rent" && p.dealType === "Аренда" && (
-            <div>
-              <SectionLabel>Условия аренды</SectionLabel>
-              <InfoRow label="Арендная плата" value={`${p.price.toLocaleString("ru-RU")} ₸/мес`} />
-              {p.deposit && <InfoRow label="Залог" value={p.deposit} />}
-              {p.utilities && <InfoRow label="Коммунальные" value={p.utilities} />}
-              {p.minTerm && <InfoRow label="Минимальный срок" value={p.minTerm} />}
-
-              {p.restrictions && p.restrictions.length > 0 && (
-                <>
-                  <SectionLabel>Ограничения</SectionLabel>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {p.restrictions.map(r => (
-                      <span key={r} style={{ display: "inline-block", padding: "3px 10px", background: "#fff1f0", color: "#cf1322", border: "1px solid #ffa39e", borderRadius: 20, fontSize: 12, fontWeight: 500 }}>{r}</span>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Agency & CTA */}
-          <div style={{ marginTop: 20, padding: "14px 16px", background: "#f7f9fa", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: 12, color: "#939393" }}>Агентство</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a2e" }}>{p.agency}</div>
-              <div style={{ fontSize: 12, color: "#70a0ff" }}>{p.agencyPhone}</div>
-            </div>
-            <button onClick={onApply} style={{
-              padding: "10px 20px", background: "#70a0ff", color: "#fff",
-              border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600,
-              cursor: "pointer", fontFamily: "Inter, sans-serif", whiteSpace: "nowrap"
-            }}>Подать заявку</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function fmtTime(iso: string) {
+  if (!iso) return "";
+  try {
+    return new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" })
+      .format(new Date(iso));
+  } catch { return ""; }
 }
 
 // ─── Application Detail Modal ─────────────────────────────────────────────────
-
-function ApplicationDetailModal({ app, onClose }: { app: ApplicationData; onClose: () => void }) {
-  const statusColors: Record<string, string> = {
-    "В обработке": "#faad14",
-    "Получен ответ": "#70a0ff",
-    "Закрыта": "#d9d9d9"
-  };
-
-  const fields = [
-    { label: "Имя", value: app.answers.name },
-    { label: "Телефон", value: app.answers.phone },
-    { label: "Email", value: app.answers.email },
-    { label: "Желаемая дата въезда", value: app.answers.moveDate || "—" },
-    { label: "Срок аренды", value: app.answers.duration },
-    { label: "Состав семьи", value: app.answers.family || "—" },
-    { label: "Домашние животные", value: app.answers.pets },
-    { label: "Источник дохода", value: app.answers.income || "—" },
-    { label: "Комментарий", value: app.answers.comment || "—" }
-  ];
+function AppDetailModal({ app, onClose }: { app: Application; onClose: () => void }) {
+  const rows: { label: string; value: string | number | boolean | null | undefined }[] = [
+    { label: "Имя", value: app.full_name },
+    { label: "Телефон", value: app.phone },
+    { label: "Email", value: app.email },
+    { label: "Тип сделки", value: app.deal_type === "rent" ? "Аренда" : "Продажа" },
+    { label: "Жильцов", value: app.occupant_count },
+    { label: "Дети", value: app.has_children == null ? null : app.has_children ? "Да" : "Нет" },
+    { label: "Животные", value: app.has_pets == null ? null : app.has_pets ? "Да" : "Нет" },
+    { label: "Студент", value: app.is_student == null ? null : app.is_student ? "Да" : "Нет" },
+    { label: "Срок аренды (мес.)", value: app.stay_term_months },
+    { label: "Ипотека", value: app.needs_mortgage == null ? null : app.needs_mortgage ? "Да" : "Нет" },
+    { label: "Срок покупки", value: app.purchase_term },
+    { label: "Комментарий", value: app.comment },
+  ].filter(r => r.value != null && r.value !== "");
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto", padding: 28, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: "#1a1a2e" }}>{app.title}</div>
-            <div style={{ fontSize: 13, color: "#939393", marginTop: 2 }}>{app.subtitle} · {app.date}</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#1a1a2e" }}>
+              {app.listing_title ?? `Объект #${app.listing_id}`}
+            </div>
+            <div style={{ fontSize: 13, color: "#939393", marginTop: 2 }}>Заявка #{app.id} · Обновлено: {fmtDate(app.updated_at)}</div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#939393" }}>×</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#939393", lineHeight: 1 }}>×</button>
         </div>
 
-        <div style={{
-          display: "inline-flex", padding: "3px 12px", borderRadius: 20, fontSize: 12, fontWeight: 500,
-          background: `${statusColors[app.status]}20`, color: statusColors[app.status],
-          marginBottom: 20, border: `1px solid ${statusColors[app.status]}50`
-        }}>
-          {app.status}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <StatusBadge status={app.status} />
+          <span style={{
+            display: "inline-flex", alignItems: "center", padding: "2px 10px",
+            borderRadius: 20, fontSize: 12, fontWeight: 500,
+            background: app.is_compatible ? "#f6ffed" : "#fff7e6",
+            color: app.is_compatible ? "#52c97a" : "#faad14",
+            border: `1px solid ${app.is_compatible ? "#b7eb8f" : "#ffd591"}`,
+          }}>
+            {app.is_compatible ? "Подходит" : "Не подходит"}
+          </span>
         </div>
 
-        <div style={{ fontSize: 12, color: "#939393", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 12, fontWeight: 500 }}>
-          Данные из заявки
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {fields.map((f, i) => (
-            <div key={f.label} style={{
-              display: "flex", justifyContent: "space-between", gap: 16,
-              padding: "10px 0", borderBottom: i < fields.length - 1 ? "1px solid #f5f5f5" : "none"
-            }}>
-              <span style={{ fontSize: 13, color: "#939393", flexShrink: 0 }}>{f.label}</span>
-              <span style={{ fontSize: 13, color: "#3a3a3a", textAlign: "right" }}>{f.value}</span>
+        <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 0 }}>
+          {rows.map((r, i) => (
+            <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: i < rows.length - 1 ? "1px solid #f5f5f5" : "none" }}>
+              <span style={{ fontSize: 13, color: "#939393", flexShrink: 0 }}>{r.label}</span>
+              <span style={{ fontSize: 13, color: "#3a3a3a", textAlign: "right", maxWidth: "60%", wordBreak: "break-word" }}>{String(r.value)}</span>
             </div>
           ))}
         </div>
 
-        {app.status === "Получен ответ" && (
-          <div style={{ marginTop: 20, padding: "14px 16px", background: "#eef4ff", borderRadius: 10, border: "1px solid #b0c9ff" }}>
-            <div style={{ fontSize: 12, color: "#70a0ff", fontWeight: 600, marginBottom: 6 }}>Ответ от агентства</div>
-            <div style={{ fontSize: 13, color: "#3a3a3a", lineHeight: 1.5 }}>
-              Здравствуйте! Мы рассмотрели вашу заявку и готовы пригласить вас на просмотр. Пожалуйста, свяжитесь с нами по телефону для согласования времени.
-            </div>
+        <button onClick={onClose} style={{ marginTop: 24, width: "100%", padding: "12px 0", background: "#f5f5f5", border: "none", borderRadius: 10, fontSize: 14, cursor: "pointer", fontFamily: "Inter, sans-serif", fontWeight: 500 }}>
+          Закрыть
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Chat window ──────────────────────────────────────────────────────────────
+function ChatWindow({
+  chat, userId, onBack,
+}: { chat: ChatSummary; userId: number; onBack: () => void }) {
+  const [messages, setMessages] = useState<ApplicationMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    getMessages(chat.application_id)
+      .then(setMessages)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [chat.application_id]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
+    const body = text.trim();
+    if (!body || sending) return;
+    setSending(true);
+    try {
+      const msg = await sendMessage(chat.application_id, body);
+      setMessages(prev => [...prev, msg]);
+      setText("");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className={styles.chatContainer}>
+      <div className={styles.chatHeader}>
+        <button className={styles.chatBackButton} onClick={onBack}>←</button>
+        <div className={styles.msgAvatar} style={{ width: 40, height: 40, fontSize: 16 }}>
+          {chat.company_name.charAt(0)}
+        </div>
+        <div className={styles.chatTitleGroup}>
+          <div className={styles.chatTitle}>{chat.company_name}</div>
+          <div className={styles.chatSubtitle}>{chat.listing_title}</div>
+        </div>
+      </div>
+
+      <div className={styles.chatMessages}>
+        {loading && <div style={{ padding: 24, textAlign: "center", color: "#ccc" }}>Загрузка...</div>}
+        {!loading && messages.length === 0 && (
+          <div style={{ padding: 24, textAlign: "center", color: "#b0b0b0", fontSize: 14 }}>
+            Сообщений пока нет
           </div>
         )}
+        {messages.map(msg => {
+          const isSent = msg.sender_user_id === userId;
+          return (
+            <div key={msg.id} className={`${styles.messageBubble} ${isSent ? styles.messageSent : styles.messageReceived}`}>
+              {msg.body}
+              <div className={styles.messageTime}>{fmtTime(msg.created_at)}</div>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      <div className={styles.chatInputArea}>
+        <input
+          type="text"
+          className={styles.chatInput}
+          placeholder="Написать сообщение..."
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleSend()}
+          disabled={sending}
+        />
+        <button className={styles.sendButton} onClick={handleSend} disabled={sending}>
+          <img src="/assets/send.svg" alt="" style={{ width: 20, filter: "brightness(0) invert(1)" }} />
+        </button>
       </div>
     </div>
   );
 }
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
-
 const Dashboard: FunctionComponent = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, login, user, token } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
-  // Modals
-  const [selectedProperty, setSelectedProperty] = useState<ExtendedProperty | null>(null);
-  const [showAppForm, setShowAppForm] = useState(false);
-  const [formProperty, setFormProperty] = useState<string>("");
-  const [selectedApp, setSelectedApp] = useState<ApplicationData | null>(null);
-  const [submittedApp, setSubmittedApp] = useState(false);
+  // Data state
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [favorites, setFavorites] = useState<FavoriteListing[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [chats, setChats] = useState<ChatSummary[]>([]);
 
-  // Chat state
-  const [chats, setChats] = useState<Chat[]>(initialChats);
-  const [activeChatId, setActiveChatId] = useState<number | null>(null);
-  const [chatMessage, setChatMessage] = useState("");
+  // Loading states
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [favLoading, setFavLoading] = useState(false);
+  const [appsLoading, setAppsLoading] = useState(false);
+  const [chatsLoading, setChatsLoading] = useState(false);
+
+  // Error states
+  const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [favError, setFavError] = useState<string | null>(null);
+  const [appsError, setAppsError] = useState<string | null>(null);
+  const [chatsError, setChatsError] = useState<string | null>(null);
+
+  // UI state
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [activeChat, setActiveChat] = useState<ChatSummary | null>(null);
+  const [removingFav, setRemovingFav] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   // Settings state
-  const [showSettingsSaved, setShowSettingsSaved] = useState(false);
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [firstName, setFirstName] = useState(user?.first_name ?? "");
+  const [lastName, setLastName] = useState(user?.last_name ?? "");
+  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState("");
+
+  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  // ── Handlers ──
+  // Toast helper
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
-  const openProperty = (prop: ExtendedProperty) => setSelectedProperty(prop);
+  // Load overview on mount
+  useEffect(() => {
+    getDashboardOverview()
+      .then(setOverview)
+      .catch(e => setOverviewError(getErrorMessage(e)))
+      .finally(() => setOverviewLoading(false));
+  }, []);
 
-  const openAppForm = (title: string) => {
-    setFormProperty(title);
-    setSelectedProperty(null);
-    setShowAppForm(true);
-  };
-
-  const handleAppSubmit = () => {
-    setShowAppForm(false);
-    setSubmittedApp(true);
-    setTimeout(() => setSubmittedApp(false), 3000);
-  };
-
-  const handleSendMessage = () => {
-    if (!chatMessage.trim() || activeChatId === null) return;
-    const now = new Date();
-    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
-    const newMsg: ChatMessage = { id: Date.now(), text: chatMessage.trim(), time, isSent: true };
-    setChats(prev => prev.map(c =>
-      c.id === activeChatId ? { ...c, messages: [...c.messages, newMsg], preview: chatMessage.trim() } : c
-    ));
-    setChatMessage("");
-  };
-
-  const handleSavePassword = () => {
-    if (newPassword !== confirmPassword) {
-      setPasswordError("Пароли не совпадают");
-      return;
+  // Load data when tab changes
+  useEffect(() => {
+    if (activeTab === "favorites" && favorites.length === 0) {
+      setFavLoading(true);
+      setFavError(null);
+      getFavorites()
+        .then(setFavorites)
+        .catch(e => setFavError(getErrorMessage(e)))
+        .finally(() => setFavLoading(false));
     }
-    if (newPassword.length < 6) {
-      setPasswordError("Пароль должен быть не менее 6 символов");
-      return;
+    if (activeTab === "applications" && applications.length === 0) {
+      setAppsLoading(true);
+      setAppsError(null);
+      getMyApplications()
+        .then(setApplications)
+        .catch(e => setAppsError(getErrorMessage(e)))
+        .finally(() => setAppsLoading(false));
     }
+    if (activeTab === "messages" && chats.length === 0 && !activeChat) {
+      setChatsLoading(true);
+      setChatsError(null);
+      getChats()
+        .then(setChats)
+        .catch(e => setChatsError(getErrorMessage(e)))
+        .finally(() => setChatsLoading(false));
+    }
+  }, [activeTab]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleRemoveFavorite = async (listingId: number) => {
+    setRemovingFav(listingId);
+    try {
+      await removeFavorite(listingId);
+      setFavorites(prev => prev.filter(f => f.listing_id !== listingId));
+      if (overview) {
+        setOverview(prev => prev ? { ...prev, favorites_count: Math.max(0, prev.favorites_count - 1) } : prev);
+      }
+      showToast("Удалено из избранного");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRemovingFav(null);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!firstName.trim() && !lastName.trim() && !phone.trim()) return;
+    setProfileError("");
+    setProfileSaving(true);
+    try {
+      const payload: Record<string, string> = {};
+      if (firstName.trim()) payload.first_name = firstName.trim();
+      if (lastName.trim()) payload.last_name = lastName.trim();
+      if (phone.trim()) payload.phone = phone.trim();
+      await updateProfile(payload);
+      // Update the user in AuthContext so sidebar name reflects the change
+      if (user && token) {
+        login(token, {
+          ...user,
+          first_name: firstName.trim() || user.first_name,
+          last_name: lastName.trim() || user.last_name,
+          phone: phone.trim() || user.phone,
+        });
+      }
+      showToast("Профиль успешно обновлён");
+    } catch (e) {
+      setProfileError(getErrorMessage(e));
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
     setPasswordError("");
-    setIsEditingPassword(false);
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowSettingsSaved(true);
-    setTimeout(() => setShowSettingsSaved(false), 3000);
-  };
-
-  const saveSettings = () => {
-    setShowSettingsSaved(true);
-    setTimeout(() => setShowSettingsSaved(false), 3000);
+    if (newPassword !== confirmPassword) { setPasswordError("Пароли не совпадают"); return; }
+    if (newPassword.length < 8) { setPasswordError("Новый пароль должен быть не менее 8 символов"); return; }
+    setPasswordSaving(true);
+    try {
+      await changePassword({ old_password: oldPassword, new_password: newPassword, new_password_confirmation: confirmPassword });
+      setOldPassword(""); setNewPassword(""); setConfirmPassword("");
+      showToast("Пароль успешно изменён");
+    } catch (e) {
+      setPasswordError(getErrorMessage(e));
+    } finally {
+      setPasswordSaving(false);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const reader = new FileReader();
-      reader.onload = (ev) => { if (ev.target?.result) setProfileImage(ev.target.result as string); };
-      reader.readAsDataURL(e.target.files[0]);
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { if (ev.target?.result) setProfileImage(ev.target.result as string); };
+    reader.readAsDataURL(file);
   };
 
-  const getStatusTag = (status: string, className: string) => (
-    <div className={`${styles.statusTag} ${className}`}>{status}</div>
-  );
+  // ── Renderers ─────────────────────────────────────────────────────────────
 
-  // ── Renderers ──
-
-  const renderOverview = () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-      <div className={styles.summaryGrid}>
-        <div className={styles.summaryCard}>
-          <div className={styles.summaryHeader}><img src="/assets/favorites.svg" alt="" style={{ width: 16 }} /> Избранное</div>
-          <div className={styles.summaryValue}>3</div>
-        </div>
-        <div className={styles.summaryCard}>
-          <div className={styles.summaryHeader}><img src="/assets/applications.svg" alt="" style={{ width: 16 }} /> Активные заявки</div>
-          <div className={styles.summaryValue}>2</div>
-        </div>
-        <div className={styles.summaryCard}>
-          <div className={styles.summaryHeader}><img src="/assets/messages.svg" alt="" style={{ width: 16 }} /> Сообщения</div>
-          <div className={styles.summaryValue}>1</div>
-        </div>
-      </div>
-
-      {/* Recently Viewed */}
-      <div className={styles.cardListContainer}>
-        <div className={styles.sectionTitle}>Недавно просмотренные</div>
+  const renderOverview = () => {
+    if (overviewLoading) {
+      return (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {mockFavorites.slice(0, 2).map((item) => (
-            <div
-              key={item.id}
-              className={styles.propertyListCard}
-              style={{ cursor: "pointer" }}
-              onClick={() => openProperty(item)}
-            >
-              <div className={styles.propertyInfoBlock}>
-                <img src={item.imageUrl} alt={item.title} className={styles.propertyImage} />
-                <div className={styles.propertyDetails}>
-                  <div className={styles.propertyTitle}>{item.title}</div>
-                  <div className={styles.propertySubtitle}>
-                    <img src="/assets/location.svg" alt="" style={{ width: 12, marginRight: 4 }} />
-                    {item.address}
-                  </div>
-                  <div className={styles.propertyPrice}>{item.price.toLocaleString("ru-RU")} ₸</div>
-                </div>
-              </div>
-              <div className={styles.propertyMeta}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <img src="/assets/view.svg" alt="" style={{ width: 14 }} /> 245
-                </div>
-                <div>15.02.2026</div>
-              </div>
-            </div>
-          ))}
+          <div className={styles.summaryGrid}>
+            {[0, 1, 2].map(i => <div key={i} className={styles.summaryCard}><Skeleton h={60} /></div>)}
+          </div>
+          <div className={styles.cardListContainer}><Skeleton h={120} /></div>
         </div>
-      </div>
+      );
+    }
 
-      {/* Recent Applications */}
-      <div className={styles.cardListContainer}>
-        <div className={styles.sectionTitle}>Последние заявки</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {mockApplications.slice(0, 2).map((app) => (
-            <div key={app.id} className={styles.appCard} style={{ cursor: "pointer" }} onClick={() => setSelectedApp(app)}>
-              <div className={styles.appInfo}>
-                <div className={styles.appTitle}>{app.title}</div>
-                <div className={styles.appSubtitle}>{app.subtitle}</div>
-              </div>
-              <div className={styles.appMeta}>
-                {getStatusTag(app.status, app.statusClass)}
-                <div className={styles.dateText}>{app.date}</div>
-                <div className={styles.arrowRight}>{">"}</div>
-              </div>
+    if (overviewError) {
+      return (
+        <div style={{ color: "#e53e3e", fontSize: 13, padding: "16px 20px", background: "#fff5f5", borderRadius: 12, border: "1px solid #fed7d7" }}>
+          Не удалось загрузить данные: {overviewError}
+        </div>
+      );
+    }
+
+    const ov = overview;
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+        {/* Stats */}
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryHeader}>
+              <img src="/assets/favorites.svg" alt="" style={{ width: 16 }} /> Избранное
             </div>
-          ))}
+            <div className={styles.summaryValue}>{ov?.favorites_count ?? 0}</div>
+          </div>
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryHeader}>
+              <img src="/assets/applications.svg" alt="" style={{ width: 16 }} /> Активные заявки
+            </div>
+            <div className={styles.summaryValue}>{ov?.active_applications_count ?? 0}</div>
+          </div>
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryHeader}>
+              <img src="/assets/messages.svg" alt="" style={{ width: 16 }} /> Непрочитанных
+            </div>
+            <div className={styles.summaryValue}>{ov?.unread_messages_count ?? 0}</div>
+          </div>
+        </div>
+
+        {/* Recent favourites */}
+        <div className={styles.cardListContainer}>
+          <div className={styles.sectionTitle}>Недавно добавленные в избранное</div>
+          {(!ov?.recent_listings || ov.recent_listings.length === 0) ? (
+            <EmptyState icon="🏠" text="Нет избранных объектов" sub="Добавляйте понравившиеся объявления в избранное" />
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {ov.recent_listings.map(item => (
+                <div key={item.listing_id} className={styles.propertyListCard} style={{ cursor: "pointer" }} onClick={() => navigate(`/property/${item.listing_id}`)}>
+                  <div className={styles.propertyInfoBlock}>
+                    {item.cover_url ? (
+                      <img src={item.cover_url} alt={item.title} className={styles.propertyImage} style={{ objectFit: "cover" }} />
+                    ) : (
+                      <div className={styles.propertyImage} style={{ background: "#f0f4ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <img src="/assets/home.svg" alt="" style={{ width: 28, opacity: 0.3 }} />
+                      </div>
+                    )}
+                    <div className={styles.propertyDetails}>
+                      <div className={styles.propertyTitle}>{item.title}</div>
+                      <div className={styles.propertySubtitle}>
+                        <img src="/assets/location.svg" alt="" style={{ width: 12, marginRight: 4 }} />
+                        {item.city}
+                      </div>
+                      <div className={styles.propertyPrice}>{item.price.toLocaleString("ru-RU")} ₸</div>
+                    </div>
+                  </div>
+                  <div className={styles.propertyMeta}>
+                    {item.area && <div>{item.area} м²</div>}
+                    <div>{fmtDate(item.created_at)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent applications */}
+        <div className={styles.cardListContainer}>
+          <div className={styles.sectionTitle}>Последние заявки</div>
+          {(!ov?.recent_applications || ov.recent_applications.length === 0) ? (
+            <EmptyState icon="📋" text="Заявок пока нет" sub="Заявки появятся когда вы откликнитесь на объявление" />
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {ov.recent_applications.map(app => (
+                <div key={app.id} className={styles.appCard} style={{ cursor: "pointer" }} onClick={() => { setActiveTab("applications"); }}>
+                  <div className={styles.appInfo}>
+                    <div className={styles.appTitle}>{app.listing_title}</div>
+                    <div className={styles.appSubtitle}>{app.company_name}</div>
+                  </div>
+                  <div className={styles.appMeta}>
+                    <StatusBadge status={app.status} />
+                    <div className={styles.dateText}>{fmtDate(app.updated_at)}</div>
+                    <div className={styles.arrowRight}>{">"}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderFavorites = () => (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div className={styles.sectionTitle} style={{ background: "#fff", padding: "24px 32px", borderRadius: 16, margin: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>Избранное</div>
-      <div className={styles.favoritesGrid}>
-        {mockFavorites.map((prop) => (
-          <div key={prop.id} className={styles.favCard} style={{ cursor: "pointer" }} onClick={() => openProperty(prop)}>
-            <img src={prop.imageUrl} alt={prop.title} className={styles.favImage} />
-            <div className={styles.favInfo}>
-              <div className={styles.favTitle}>{prop.title}</div>
-              <div className={styles.favAddress}>
-                <img src="/assets/location.svg" alt="" style={{ width: 12, opacity: 0.5, marginRight: 4 }} />
-                {prop.address}
-              </div>
-              <div className={styles.favFooter}>
-                <div className={styles.favPrice}>{prop.price.toLocaleString("ru-RU")} ₸</div>
-                <div className={styles.favArea}>{prop.area} м²</div>
+      <div className={styles.sectionTitle} style={{ background: "#fff", padding: "24px 32px", borderRadius: 16, margin: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
+        Избранное
+      </div>
+      {favLoading ? (
+        <div className={styles.favoritesGrid}>
+          {[0, 1, 2].map(i => <div key={i} className={styles.favCard}><Skeleton h={200} /></div>)}
+        </div>
+      ) : favError ? (
+        <div style={{ color: "#e53e3e", fontSize: 13, padding: "12px 16px", background: "#fff5f5", borderRadius: 10, border: "1px solid #fed7d7" }}>
+          {favError}
+        </div>
+      ) : favorites.length === 0 ? (
+        <EmptyState icon="❤️" text="Избранных объектов нет" sub="Добавляйте объявления в избранное и они появятся здесь" />
+      ) : (
+        <div className={styles.favoritesGrid}>
+          {favorites.map(item => (
+            <div key={item.listing_id} className={styles.favCard}>
+              {item.cover_url ? (
+                <img src={item.cover_url} alt={item.title} className={styles.favImage} style={{ objectFit: "cover", cursor: "pointer" }} onClick={() => navigate(`/property/${item.listing_id}`)} />
+              ) : (
+                <div className={styles.favImage} style={{ background: "#f0f4ff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={() => navigate(`/property/${item.listing_id}`)}>
+                  <img src="/assets/home.svg" alt="" style={{ width: 40, opacity: 0.3 }} />
+                </div>
+              )}
+              <div className={styles.favInfo}>
+                <div className={styles.favTitle} style={{ cursor: "pointer" }} onClick={() => navigate(`/property/${item.listing_id}`)}>{item.title}</div>
+                <div className={styles.favAddress}>
+                  <img src="/assets/location.svg" alt="" style={{ width: 12, opacity: 0.5, marginRight: 4 }} />
+                  {item.city}
+                </div>
+                <div className={styles.favFooter}>
+                  <div className={styles.favPrice}>{item.price.toLocaleString("ru-RU")} ₸</div>
+                  {item.area && <div className={styles.favArea}>{item.area} м²</div>}
+                </div>
+                <button
+                  onClick={() => handleRemoveFavorite(item.listing_id)}
+                  disabled={removingFav === item.listing_id}
+                  style={{
+                    marginTop: 8, width: "100%", padding: "6px 0", border: "1px solid #fed7d7",
+                    borderRadius: 8, background: removingFav === item.listing_id ? "#f0f0f0" : "#fff5f5",
+                    color: "#e53e3e", fontSize: 12, cursor: "pointer", fontFamily: "Inter, sans-serif",
+                  }}
+                >
+                  {removingFav === item.listing_id ? "Удаление..." : "Удалить из избранного"}
+                </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
   const renderApplications = () => (
     <div className={styles.cardListContainer} style={{ height: "fit-content" }}>
       <div className={styles.sectionTitle}>Мои заявки</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {mockApplications.map((app) => (
-          <div key={app.id} className={styles.appCard} style={{ cursor: "pointer" }} onClick={() => setSelectedApp(app)}>
-            <div className={styles.appInfo}>
-              <div className={styles.appTitle}>{app.title}</div>
-              <div className={styles.appSubtitle}>{app.subtitle}</div>
+      {appsLoading ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[0, 1, 2].map(i => <Skeleton key={i} h={72} />)}
+        </div>
+      ) : appsError ? (
+        <div style={{ color: "#e53e3e", fontSize: 13, padding: "12px 16px", background: "#fff5f5", borderRadius: 10, border: "1px solid #fed7d7" }}>
+          {appsError}
+        </div>
+      ) : applications.length === 0 ? (
+        <EmptyState icon="📋" text="Заявок нет" sub="Когда вы откликнетесь на объявление, заявка появится здесь" />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {applications.map(app => (
+            <div
+              key={app.id}
+              className={styles.appCard}
+              style={{ cursor: "pointer" }}
+              onClick={() => setSelectedApp(app)}
+            >
+              <div className={styles.appInfo}>
+                <div className={styles.appTitle}>
+                  {app.listing_title ?? `Объект #${app.listing_id}`}
+                </div>
+                <div className={styles.appSubtitle}>
+                  {app.deal_type === "rent" ? "Аренда" : "Продажа"}
+                  {" · "}
+                  <span style={{ color: app.is_compatible ? "#52c97a" : "#faad14", fontWeight: 500 }}>
+                    {app.is_compatible ? "Подходит" : "Не подходит"}
+                  </span>
+                </div>
+              </div>
+              <div className={styles.appMeta}>
+                <StatusBadge status={app.status} />
+                <div className={styles.dateText}>{fmtDate(app.updated_at)}</div>
+                <div className={styles.arrowRight}>{">"}</div>
+              </div>
             </div>
-            <div className={styles.appMeta}>
-              {getStatusTag(app.status, app.statusClass)}
-              <div className={styles.dateText}>{app.date}</div>
-              <div className={styles.arrowRight}>{">"}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
-  const activeChat = chats.find(c => c.id === activeChatId);
-
-  const renderChatWindow = () => {
-    if (!activeChat) return null;
-    return (
-      <div className={styles.chatContainer}>
-        <div className={styles.chatHeader}>
-          <button className={styles.chatBackButton} onClick={() => setActiveChatId(null)}>←</button>
-          <div className={styles.msgAvatar} style={{ width: 40, height: 40, fontSize: 16 }}>{activeChat.sender.charAt(0)}</div>
-          <div className={styles.chatTitleGroup}>
-            <div className={styles.chatTitle}>{activeChat.sender}</div>
-            <div className={styles.chatSubtitle}>Арендодатель / В сети</div>
-          </div>
-        </div>
-        <div className={styles.chatMessages}>
-          {activeChat.messages.map(msg => (
-            <div key={msg.id} className={`${styles.messageBubble} ${msg.isSent ? styles.messageSent : styles.messageReceived}`}>
-              {msg.text}
-              <div className={styles.messageTime}>{msg.time}</div>
-            </div>
-          ))}
-        </div>
-        <div className={styles.chatInputArea}>
-          <input
-            type="text"
-            className={styles.chatInput}
-            placeholder="Написать сообщение..."
-            value={chatMessage}
-            onChange={(e) => setChatMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-          />
-          <button className={styles.sendButton} onClick={handleSendMessage}>
-            <img src="/assets/send.svg" alt="" style={{ width: 20, filter: "brightness(0) invert(1)" }} />
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   const renderMessages = () => {
-    if (activeChatId) return renderChatWindow();
+    if (activeChat) {
+      return <ChatWindow chat={activeChat} userId={user?.id ?? 0} onBack={() => setActiveChat(null)} />;
+    }
     return (
       <div className={styles.cardListContainer} style={{ height: "fit-content" }}>
         <div className={styles.sectionTitle}>Сообщения</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {chats.map((msg) => (
-            <div key={msg.id} className={styles.messageCard} onClick={() => setActiveChatId(msg.id)}>
-              <div className={styles.msgLeft}>
-                <div className={styles.msgAvatar}>{msg.sender.charAt(0)}</div>
-                <div className={styles.msgContent}>
-                  <div className={styles.msgSender}>{msg.sender}</div>
-                  <div className={styles.msgPreview}>{msg.preview}</div>
+        {chatsLoading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[0, 1].map(i => <Skeleton key={i} h={72} />)}
+          </div>
+        ) : chatsError ? (
+          <div style={{ color: "#e53e3e", fontSize: 13, padding: "12px 16px", background: "#fff5f5", borderRadius: 10, border: "1px solid #fed7d7" }}>
+            {chatsError}
+          </div>
+        ) : chats.length === 0 ? (
+          <EmptyState icon="💬" text="Сообщений нет" sub="Чаты появятся когда вы подадите заявку на объявление" />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {chats.map(chat => (
+              <div
+                key={chat.application_id}
+                className={styles.messageCard}
+                onClick={() => setActiveChat(chat)}
+                style={{ cursor: "pointer" }}
+              >
+                <div className={styles.msgLeft}>
+                  <div className={styles.msgAvatar} style={{ position: "relative" }}>
+                    {chat.company_name.charAt(0)}
+                    {chat.is_unread && (
+                      <div style={{ position: "absolute", top: -2, right: -2, width: 10, height: 10, background: "#f5222d", borderRadius: "50%", border: "2px solid #fff" }} />
+                    )}
+                  </div>
+                  <div className={styles.msgContent}>
+                    <div className={styles.msgSender}>{chat.company_name}</div>
+                    <div className={styles.msgPreview} style={{ fontStyle: "italic", color: chat.is_unread ? "#1a1a2e" : "#939393", fontWeight: chat.is_unread ? 600 : 400 }}>
+                      {chat.last_message}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#b0b0b0", marginTop: 2 }}>{chat.listing_title}</div>
+                  </div>
+                </div>
+                <div className={styles.msgRight}>
+                  <span style={{ fontSize: 12, color: "#b0b0b0" }}>{fmtTime(chat.last_message_at)}</span>
+                  <span className={styles.arrowRight}>{">"}</span>
                 </div>
               </div>
-              <div className={styles.msgRight}>
-                <span>{msg.date}</span>
-                {msg.hasIndicator && <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#70a0ff" }} />}
-                <span className={styles.arrowRight}>{">"}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
 
   const renderSettings = () => (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Profile */}
       <div className={styles.settingsContainer}>
         <div className={styles.sectionTitle} style={{ marginBottom: 24 }}>Персональные данные</div>
+
         <div className={styles.profileSection}>
           <div className={styles.avatarWrapper} onClick={() => fileInputRef.current?.click()}>
-            {profileImage ? <img src={profileImage} alt="Profile" className={styles.avatarImage} /> : "И"}
+            {profileImage
+              ? <img src={profileImage} alt="Profile" className={styles.avatarImage} />
+              : <span style={{ fontSize: 22, fontWeight: 700, color: "#70a0ff" }}>
+                  {(user?.first_name?.charAt(0) ?? "") + (user?.last_name?.charAt(0) ?? "")}
+                </span>
+            }
             <div className={styles.avatarOverlay}>
               <img src="/assets/avatar.svg" alt="Upload" style={{ width: 24, filter: "brightness(0) invert(1)" }} />
             </div>
           </div>
           <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className={styles.uploadInput} />
           <div>
-            <div style={{ fontSize: 16, fontWeight: 500, color: "#3a3a3a" }}>Фото профиля</div>
-            <div style={{ fontSize: 13, color: "#737373", marginTop: 4 }}>Нажмите на аватар, чтобы загрузить новое фото</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#1a1a2e" }}>
+              {user?.first_name} {user?.last_name}
+            </div>
+            <div style={{ fontSize: 13, color: "#939393", marginTop: 2 }}>{user?.email}</div>
+            <div style={{ fontSize: 12, color: "#70a0ff", marginTop: 2, textTransform: "capitalize" }}>
+              {user?.role?.name ?? "Пользователь"}
+            </div>
           </div>
         </div>
+
         <div className={styles.formGrid}>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Имя</label>
-            <input type="text" className={styles.formInput} defaultValue="Иван" />
+            <input type="text" className={styles.formInput} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Имя" />
           </div>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Фамилия</label>
-            <input type="text" className={styles.formInput} defaultValue="Петров" />
+            <input type="text" className={styles.formInput} value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Фамилия" />
           </div>
         </div>
-        <div className={styles.formGroup} style={{ marginBottom: 20 }}>
-          <label className={styles.formLabel}>Email</label>
-          <input type="email" className={styles.formInput} defaultValue="ivan.petrov@email.com" />
-        </div>
-        <div className={styles.formGroup} style={{ marginBottom: 32 }}>
-          <label className={styles.formLabel}>Телефон</label>
-          <input type="tel" className={styles.formInput} defaultValue="+7 (999) 123-45-67" />
-        </div>
-        <button className={styles.btnPrimary} onClick={saveSettings}>Сохранить изменения</button>
-      </div>
 
-      <div className={styles.settingsContainer}>
-        <div className={styles.sectionTitle} style={{ marginBottom: 24 }}>Безопасность</div>
-        {!isEditingPassword ? (
-          <button className={styles.btnSecondary} onClick={() => setIsEditingPassword(true)}>Изменить пароль</button>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Старый пароль</label>
-              <input type="password" className={styles.formInput} placeholder="••••••••" />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Новый пароль</label>
-              <input
-                type="password"
-                className={styles.formInput}
-                placeholder="••••••••"
-                value={newPassword}
-                onChange={e => { setNewPassword(e.target.value); setPasswordError(""); }}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Подтверждение пароля</label>
-              <input
-                type="password"
-                className={styles.formInput}
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={e => { setConfirmPassword(e.target.value); setPasswordError(""); }}
-                style={{ borderColor: passwordError ? "#ff4d4f" : undefined }}
-              />
-              {passwordError && <div style={{ fontSize: 12, color: "#ff4d4f", marginTop: 4 }}>{passwordError}</div>}
-            </div>
-            <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-              <button className={styles.btnPrimary} onClick={handleSavePassword}>Сохранить пароль</button>
-              <button className={styles.btnSecondary} onClick={() => { setIsEditingPassword(false); setPasswordError(""); setNewPassword(""); setConfirmPassword(""); }}>Отмена</button>
-            </div>
+        <div className={styles.formGroup} style={{ marginBottom: 24 }}>
+          <label className={styles.formLabel}>Телефон</label>
+          <input type="tel" className={styles.formInput} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7 (999) 000-00-00" />
+        </div>
+
+        <div className={styles.formGroup} style={{ marginBottom: 24 }}>
+          <label className={styles.formLabel}>Email (нельзя изменить)</label>
+          <input type="email" className={styles.formInput} value={user?.email ?? ""} disabled style={{ background: "#fafafa", color: "#939393" }} />
+        </div>
+
+        {profileError && (
+          <div style={{ color: "#e53e3e", fontSize: 13, marginBottom: 16, padding: "8px 12px", background: "#fff5f5", borderRadius: 8, border: "1px solid #fed7d7" }}>
+            {profileError}
           </div>
         )}
+
+        <button className={styles.btnPrimary} onClick={handleSaveProfile} disabled={profileSaving}>
+          {profileSaving ? "Сохранение..." : "Сохранить изменения"}
+        </button>
+      </div>
+
+      {/* Password */}
+      <div className={styles.settingsContainer}>
+        <div className={styles.sectionTitle} style={{ marginBottom: 24 }}>Безопасность</div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 400 }}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Текущий пароль</label>
+            <div style={{ position: "relative" }}>
+              <input type={showOld ? "text" : "password"} className={styles.formInput} value={oldPassword} onChange={e => setOldPassword(e.target.value)} placeholder="••••••••" style={{ paddingRight: 40 }} />
+              <button type="button" onClick={() => setShowOld(v => !v)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}>
+                {showOld ? "🙈" : "👁️"}
+              </button>
+            </div>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Новый пароль</label>
+            <div style={{ position: "relative" }}>
+              <input type={showNew ? "text" : "password"} className={styles.formInput} value={newPassword} onChange={e => { setNewPassword(e.target.value); setPasswordError(""); }} placeholder="Минимум 8 символов" style={{ paddingRight: 40 }} />
+              <button type="button" onClick={() => setShowNew(v => !v)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}>
+                {showNew ? "🙈" : "👁️"}
+              </button>
+            </div>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Подтверждение пароля</label>
+            <input
+              type="password" className={styles.formInput}
+              value={confirmPassword}
+              onChange={e => { setConfirmPassword(e.target.value); setPasswordError(""); }}
+              placeholder="Повторите новый пароль"
+              style={{ borderColor: passwordError && confirmPassword ? "#ff4d4f" : undefined }}
+            />
+          </div>
+
+          {passwordError && (
+            <div style={{ color: "#e53e3e", fontSize: 13, padding: "8px 12px", background: "#fff5f5", borderRadius: 8, border: "1px solid #fed7d7" }}>
+              {passwordError}
+            </div>
+          )}
+
+          <button className={styles.btnPrimary} onClick={handleChangePassword} disabled={passwordSaving || !oldPassword || !newPassword || !confirmPassword}>
+            {passwordSaving ? "Сохранение..." : "Изменить пароль"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1009,23 +781,29 @@ const Dashboard: FunctionComponent = () => {
           <span style={{ fontSize: 16, fontWeight: 700, color: "#1a1a2e", letterSpacing: "-0.3px" }}>Qonys</span>
         </div>
         <button className={styles.backButton} onClick={() => navigate("/")}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 2 }}><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 2 }}><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
           На главную
         </button>
         <div className={styles.sidebarTitle}>Личный кабинет</div>
         <nav className={styles.navMenu}>
           {([
-            { id: "overview", label: "Обзор", icon: "/assets/overview.svg" },
-            { id: "favorites", label: "Избранное", icon: "/assets/favorites.svg" },
-            { id: "applications", label: "Заявки", icon: "/assets/applications.svg" },
-            { id: "messages", label: "Сообщения", icon: "/assets/messages.svg" },
+            { id: "overview",      label: "Обзор",      icon: "/assets/overview.svg" },
+            { id: "favorites",     label: "Избранное",  icon: "/assets/favorites.svg" },
+            { id: "applications",  label: "Заявки",     icon: "/assets/applications.svg" },
+            { id: "messages",      label: "Сообщения",  icon: "/assets/messages.svg" },
           ] as { id: TabId; label: string; icon: string }[]).map(item => (
             <div
               key={item.id}
               className={`${styles.navItem} ${activeTab === item.id ? styles.navItemActive : ""}`}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => { setActiveTab(item.id); if (item.id === "messages") setActiveChat(null); }}
             >
-              <img src={item.icon} alt="" style={{ width: 18, opacity: activeTab === item.id ? 1 : 0.5 }} /> {item.label}
+              <img src={item.icon} alt="" style={{ width: 18, opacity: activeTab === item.id ? 1 : 0.5 }} />
+              {item.label}
+              {item.id === "messages" && (overview?.unread_messages_count ?? 0) > 0 && (
+                <span style={{ marginLeft: "auto", background: "#f5222d", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {overview!.unread_messages_count}
+                </span>
+              )}
             </div>
           ))}
           <div
@@ -1033,17 +811,31 @@ const Dashboard: FunctionComponent = () => {
             onClick={() => setActiveTab("settings")}
             style={{ marginTop: 16 }}
           >
-            <img src="/assets/settings.svg" alt="" style={{ width: 18, opacity: activeTab === "settings" ? 1 : 0.5 }} /> Настройки
+            <img src="/assets/settings.svg" alt="" style={{ width: 18, opacity: activeTab === "settings" ? 1 : 0.5 }} />
+            Настройки
           </div>
         </nav>
-        <div style={{ marginTop: "auto", padding: "16px 24px", borderTop: "1px solid #f0f0f0" }}>
+
+        {/* User info */}
+        <div style={{ margin: "auto 0 0", padding: "12px 24px", borderTop: "1px solid #f0f0f0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#f0f4ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#70a0ff", flexShrink: 0 }}>
+              {(user?.first_name?.charAt(0) ?? "") + (user?.last_name?.charAt(0) ?? "")}
+            </div>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a2e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {user?.first_name} {user?.last_name}
+              </div>
+              <div style={{ fontSize: 11, color: "#939393", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.email}</div>
+            </div>
+          </div>
           <div
             className={styles.navItem}
             style={{ color: "#f5222d", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}
             onClick={() => { logout(); navigate("/"); }}
           >
             <span style={{ display: "flex", alignItems: "center", opacity: 1 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
             </span>
             Выйти
           </div>
@@ -1053,34 +845,26 @@ const Dashboard: FunctionComponent = () => {
       {/* Main Content */}
       <main className={styles.mainContent}>{renderContent()}</main>
 
-      {/* Modals */}
-      {selectedProperty && (
-        <PropertyModal
-          property={selectedProperty}
-          onClose={() => setSelectedProperty(null)}
-          onApply={() => openAppForm(selectedProperty.title)}
-        />
-      )}
-
-      {showAppForm && (
-        <ApplicationFormModal
-          propertyTitle={formProperty}
-          onClose={() => setShowAppForm(false)}
-          onSubmit={() => handleAppSubmit()}
-        />
-      )}
-
+      {/* Detail modal */}
       {selectedApp && (
-        <ApplicationDetailModal app={selectedApp} onClose={() => setSelectedApp(null)} />
+        <AppDetailModal app={selectedApp} onClose={() => setSelectedApp(null)} />
       )}
 
       {/* Toast */}
-      {(showSettingsSaved || submittedApp) && (
+      {toast && (
         <div className={styles.toastCard}>
           <div style={{ fontSize: 18 }}>✓</div>
-          {submittedApp ? "Заявка успешно отправлена!" : "Изменения успешно сохранены"}
+          {toast}
         </div>
       )}
+
+      {/* Shimmer animation */}
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
     </div>
   );
 };

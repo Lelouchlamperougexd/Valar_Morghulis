@@ -102,14 +102,14 @@ const Home: FunctionComponent = () => {
                   <div className={styles.container14}>
                     <img
                       className={styles.imageIcon}
-                      src="src/assets/source/Image.jpg"
+                      src="/assets/source/Image.jpg"
                       alt=""
                     />
                     <div className={styles.container15} />
                     <div className={styles.container16}>
                       <img
                         className={styles.containerIcon5}
-                        src="src/assets/Icon-17.svg"
+                        src="/assets/Icon-17.svg"
                         alt=""
                       />
                       <div className={styles.heading35}>
@@ -122,7 +122,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text}>
@@ -134,7 +134,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text2}>
@@ -144,7 +144,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text3}>
@@ -163,14 +163,14 @@ const Home: FunctionComponent = () => {
                   <div className={styles.container14}>
                     <img
                       className={styles.imageIcon}
-                      src="src/assets/Image (Агентствам).png"
+                      src="/assets/Image (Агентствам).png"
                       alt=""
                     />
                     <div className={styles.container15} />
                     <div className={styles.container21}>
                       <img
                         className={styles.containerIcon5}
-                        src="src/assets/Icon-15.svg"
+                        src="/assets/Icon-15.svg"
                         alt=""
                       />
                       <div className={styles.heading35}>
@@ -183,7 +183,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text4}>
@@ -193,7 +193,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text5}>
@@ -205,7 +205,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text6}>
@@ -222,14 +222,14 @@ const Home: FunctionComponent = () => {
                   <div className={styles.container14}>
                     <img
                       className={styles.imageIcon}
-                      src="src/assets/Image (Застройщикам).png"
+                      src="/assets/Image (Застройщикам).png"
                       alt=""
                     />
                     <div className={styles.container15} />
                     <div className={styles.container26}>
                       <img
                         className={styles.containerIcon5}
-                        src="src/assets/Icon-14.svg"
+                        src="/assets/Icon-14.svg"
                         alt=""
                       />
                       <div className={styles.heading37}>
@@ -242,7 +242,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text7}>
@@ -254,7 +254,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text8}>
@@ -266,7 +266,7 @@ const Home: FunctionComponent = () => {
                       <div className={styles.listItem}>
                         <img
                           className={styles.containerIcon6}
-                          src="src/assets/Icon-16.svg"
+                          src="/assets/Icon-16.svg"
                           alt=""
                         />
                         <div className={styles.text9}>
@@ -288,7 +288,7 @@ const Home: FunctionComponent = () => {
                 <div className={styles.container29}>
                   <img
                     className={styles.icon}
-                    src="src/assets/Icon-13.svg"
+                    src="/assets/Icon-13.svg"
                     alt=""
                   />
                   <div className={styles.text10}>
@@ -323,7 +323,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.container34}>
                       <img
                         className={styles.containerIcon17}
-                        src="src/assets/Icon-12.svg"
+                        src="/assets/Icon-12.svg"
                         alt=""
                       />
                       <div className={styles.container35}>
@@ -349,7 +349,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.container34}>
                       <img
                         className={styles.containerIcon17}
-                        src="src/assets/Icon-11.svg"
+                        src="/assets/Icon-11.svg"
                         alt=""
                       />
                       <div className={styles.container35}>
@@ -377,7 +377,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.container34}>
                       <img
                         className={styles.containerIcon17}
-                        src="src/assets/Icon-10.svg"
+                        src="/assets/Icon-10.svg"
                         alt=""
                       />
                       <div className={styles.container35}>
@@ -449,7 +449,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.button6} onClick={() => navigate('/catalog')} style={{ cursor: 'pointer' }}>
                       <img
                         className={styles.icon2}
-                        src="src/assets/Icon-21.svg"
+                        src="/assets/Icon-21.svg"
                         alt=""
                       />
                       <div className={styles.div52}>Найти объект</div>
@@ -500,7 +500,7 @@ const Home: FunctionComponent = () => {
                         </div>
                         <img
                           className={styles.icon3}
-                          src="src/assets/Icon-8.svg"
+                          src="/assets/Icon-8.svg"
                           alt=""
                         />
                       </div>
@@ -515,7 +515,7 @@ const Home: FunctionComponent = () => {
                         </div>
                         <img
                           className={styles.icon3}
-                          src="src/assets/Icon-7.svg"
+                          src="/assets/Icon-7.svg"
                           alt=""
                         />
                       </div>
@@ -541,7 +541,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.button8}>
                       <img
                         className={styles.icon5}
-                        src="src/assets/Icon-21.svg"
+                        src="/assets/Icon-21.svg"
                         alt=""
                       />
                       <div className={styles.div66}>Поиск</div>
@@ -567,17 +567,17 @@ const Home: FunctionComponent = () => {
                   <div className={styles.container79}>
                     <img
                       className={styles.linkIcon}
-                      src="src/assets/Icon-6.svg"
+                      src="/assets/Icon-6.svg"
                       alt=""
                     />
                     <img
                       className={styles.linkIcon}
-                      src="src/assets/Icon-5.svg"
+                      src="/assets/Icon-5.svg"
                       alt=""
                     />
                     <img
                       className={styles.linkIcon}
-                      src="src/assets/Icon-4.svg"
+                      src="/assets/Icon-4.svg"
                       alt=""
                     />
                   </div>
@@ -628,7 +628,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.listItem18}>
                       <img
                         className={styles.icon6}
-                        src="src/assets/Icon-3.svg"
+                        src="/assets/Icon-3.svg"
                         alt=""
                       />
                       <div className={styles.text19}>
@@ -640,7 +640,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.listItem19}>
                       <img
                         className={styles.icon7}
-                        src="src/assets/Icon-2.svg"
+                        src="/assets/Icon-2.svg"
                         alt=""
                       />
                       <div className={styles.text20}>
@@ -652,7 +652,7 @@ const Home: FunctionComponent = () => {
                     <div className={styles.listItem19}>
                       <img
                         className={styles.icon7}
-                        src="src/assets/Icon-1.svg"
+                        src="/assets/Icon-1.svg"
                         alt=""
                       />
                       <div className={styles.text21}>
@@ -694,7 +694,7 @@ const Home: FunctionComponent = () => {
         <div className={styles.container85}>
           <div className={styles.container86}>
             <div className={styles.paragraph14} style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-              <img src="/src/assets/logo.png" alt="Qonys" style={{ height: '80px', objectFit: 'contain', transform: 'translateY(10px)' }} />
+              <img src="/assets/logo.png" alt="Qonys" style={{ height: '80px', objectFit: 'contain', transform: 'translateY(10px)' }} />
             </div>
           </div>
           <div className={styles.navigation}>
@@ -713,7 +713,7 @@ const Home: FunctionComponent = () => {
               <div className={styles.div88}>Зарегистрироваться</div>
             </div>
             <div className={styles.button12} onClick={() => setShowLogin(true)}>
-              <img src="src/assets/Icon.svg" className={styles.icon9} />
+              <img src="/assets/Icon.svg" className={styles.icon9} />
               <div className={styles.div90}>Войти</div>
             </div>
           </div>

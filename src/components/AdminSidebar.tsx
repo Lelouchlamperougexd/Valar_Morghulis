@@ -2,7 +2,7 @@ import type { FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import s from "../css/Admin.module.css";
-import logo from "../assets/logo.png";
+const logo = "/assets/logo.png";
 
 
 interface Props {

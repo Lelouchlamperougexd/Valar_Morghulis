@@ -31,6 +31,7 @@ const SignUpCompany: FunctionComponent<Props> = ({ role = "agency", onClose, onB
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const isValidForm =
     companyName.trim().length > 0 &&
@@ -68,15 +69,52 @@ const SignUpCompany: FunctionComponent<Props> = ({ role = "agency", onClose, onB
 
       const { token, ...user } = data;
       login(token, user);
-
-      onClose();
-      navigate("/agency");
+      setSubmitted(true);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <div className={styles.container} style={{ height: "auto" }}>
+        <div className={styles.container18}>
+          <div className={styles.heading2}>
+            <div className={styles.div10}>Заявка отправлена</div>
+          </div>
+          <button className={styles.closeButton} onClick={onClose}>✕</button>
+        </div>
+        <div style={{ padding: "40px 32px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#fff7e6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d48806" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: "#1a1a2e" }}>
+            Ожидайте верификации
+          </div>
+          <div style={{ fontSize: 14, color: "#595959", lineHeight: 1.6, maxWidth: 340 }}>
+            Ваша заявка на регистрацию компании <strong>{companyName}</strong> отправлена администратору.
+            <br /><br />
+            Администратор проверит данные и подтвердит или отклонит заявку. Обычно это занимает до 24 часов.
+          </div>
+          <div style={{ padding: "12px 20px", background: "#fffbe6", borderRadius: 8, border: "1px solid #ffe58f", fontSize: 13, color: "#7c4a00", textAlign: "left", width: "100%", maxWidth: 340 }}>
+            После верификации вы получите полный доступ к кабинету компании.
+          </div>
+          <button
+            className={styles.buttonPrimary}
+            style={{ backgroundColor: "#70a0ff", marginTop: 8 }}
+            onClick={() => { onClose(); navigate("/"); }}
+          >
+            На главную
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container} style={{ height: "auto", maxHeight: "90vh" }}>

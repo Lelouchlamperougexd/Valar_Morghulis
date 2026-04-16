@@ -1,7 +1,7 @@
 import { useState, type FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../css/Login.module.css";
-import { loginUser, loginAdmin, getErrorMessage } from "../api/auth";
+import { loginUser, getErrorMessage } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 
 type Props = {
@@ -16,9 +16,11 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
+  // Минимальная валидация формы
   const isValidForm =
-    email.includes("@") && email.includes(".") && password.length >= 6;
+    email.includes("@") && email.includes(".") && password.length >= 3;
 
   const handleLogin = async () => {
     if (!isValidForm) return;
@@ -26,22 +28,17 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
     setLoading(true);
 
     try {
-      // Try admin login first; fall back to regular user login
-      let data;
-      try {
-        data = await loginAdmin({ email, password });
-      } catch {
-        data = await loginUser({ email, password });
-      }
+      const data = await loginUser({ email, password });
 
       login(data.token, data.user);
       onClose();
 
-      // Route by role level: admin/moderator → /admin, agency/dev → /agency, user → /dashboard
-      const level = data.user.role?.level ?? 0;
-      if (level >= 3) {
+      // Roles from DB: admin(3), moderator(2), agency(1), developer(1), user(1)
+      const roleName = data.user?.role?.name ?? "";
+
+      if (roleName === "admin" || roleName === "moderator") {
         navigate("/admin");
-      } else if (level === 2) {
+      } else if (roleName === "agency" || roleName === "developer") {
         navigate("/agency");
       } else {
         navigate("/dashboard");
@@ -65,7 +62,6 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
           <div className={styles.div}>Войти</div>
         </div>
 
-        {/* кнопка закрытия */}
         <button className={styles.closeButton} onClick={onClose}>
           ✕
         </button>
@@ -90,6 +86,7 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
 
             <div className={styles.container6}>
               <input
+                id="login-email"
                 className={styles.emailInput}
                 type="email"
                 placeholder="user@example.com"
@@ -97,8 +94,9 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={loading}
+                autoComplete="email"
               />
-              <img src="src/assets/email.svg" className={styles.icon} alt="" />
+              <img src="/assets/email.svg" className={styles.icon} alt="" />
             </div>
           </div>
 
@@ -112,16 +110,24 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
 
             <div className={styles.container6}>
               <input
+                id="login-password"
                 className={styles.passwordInput}
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={loading}
+                autoComplete="current-password"
               />
-              <img src="src/assets/password.svg" className={styles.icon} alt="" />
-              <img src="src/assets/password2.svg" className={styles.buttonIcon} alt="" />
+              <img src="/assets/password.svg" className={styles.icon} alt="" />
+              <img
+                src="/assets/password2.svg"
+                className={styles.buttonIcon}
+                alt="Показать пароль"
+                style={{ cursor: "pointer" }}
+                onClick={() => setShowPassword((v) => !v)}
+              />
             </div>
           </div>
         </div>
@@ -133,10 +139,11 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
               color: "#e53e3e",
               fontSize: "13px",
               marginTop: "8px",
-              padding: "8px 12px",
+              padding: "10px 14px",
               background: "#fff5f5",
-              borderRadius: "6px",
+              borderRadius: "8px",
               border: "1px solid #fed7d7",
+              lineHeight: 1.5,
             }}
           >
             {error}
@@ -145,10 +152,11 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
 
         {/* BUTTON */}
         <button
+          id="login-submit"
           className={styles.button}
           onClick={handleLogin}
           disabled={!isValidForm || loading}
-          style={{ opacity: loading ? 0.7 : 1 }}
+          style={{ opacity: loading || !isValidForm ? 0.7 : 1 }}
         >
           {loading ? "Входим..." : "Войти"}
         </button>
