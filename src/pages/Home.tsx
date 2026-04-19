@@ -1,16 +1,76 @@
-import { useState, type FunctionComponent } from "react";
+import { useState, useRef, useEffect, type FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../css/App.module.css";
 import Container from "./Login";
 import SignUp from "./SignUp";
+import { useAuth } from "../context/AuthContext";
+import videoLogo from "../assets/video-logo.mp4";
+
+function getDashboardRoute(roleName: string): string {
+  if (roleName === "admin" || roleName === "moderator") return "/admin";
+  if (roleName === "agency") return "/agency";
+  if (roleName === "developer") return "/developer";
+  return "/dashboard";
+}
+
+function getRoleLabel(roleName: string): string {
+  if (roleName === "admin") return "Администратор";
+  if (roleName === "moderator") return "Модератор";
+  if (roleName === "agency") return "Агентство";
+  if (roleName === "developer") return "Застройщик";
+  return "Личный кабинет";
+}
 
 const Home: FunctionComponent = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    setShowProfileMenu(false);
+    setLoggingOut(true);
+    setTimeout(() => {
+      logout();
+      navigate("/");
+      setLoggingOut(false);
+    }, 1800);
+  };
 
   return (
     <div className={styles.realEstateLandingPageIniti}>
+      {/* ── Logout overlay ── */}
+      {loggingOut && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 99999,
+          background: "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          animation: "fadeIn 0.2s ease",
+        }}>
+          <style>{`@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }`}</style>
+          <video
+            src={videoLogo}
+            autoPlay
+            muted
+            playsInline
+            style={{ width: 320, height: 320, objectFit: "contain" }}
+          />
+        </div>
+      )}
       <div className={styles.body}>
         <div className={styles.pk}>
           <div className={styles.mainContent}>
@@ -706,16 +766,120 @@ const Home: FunctionComponent = () => {
             </div>
           </div>
           <div className={styles.container87}>
-            <div className={styles.button10}>
-              <div className={styles.div88}>Создать объявление</div>
-            </div>
-            <div className={styles.button11} onClick={() => setShowRegister(true)}>
-              <div className={styles.div88}>Зарегистрироваться</div>
-            </div>
-            <div className={styles.button12} onClick={() => setShowLogin(true)}>
-              <img src="/assets/Icon.svg" className={styles.icon9} />
-              <div className={styles.div90}>Войти</div>
-            </div>
+            {user ? (
+              /* ── Авторизован: кнопка действия (по роли) + кнопка профиля ── */
+              <>
+                {user.role?.name === "agency" && (
+                  <div className={styles.button10} onClick={() => navigate("/agency")} style={{ cursor: "pointer" }}>
+                    <div className={styles.div88}>Создать объявление</div>
+                  </div>
+                )}
+                {user.role?.name === "developer" && (
+                  <div className={styles.button10} onClick={() => navigate("/developer")} style={{ cursor: "pointer" }}>
+                    <div className={styles.div88}>Создать проект</div>
+                  </div>
+                )}
+                <div ref={profileMenuRef} style={{ position: "relative", marginLeft: "auto" }}>
+                <button
+                  onClick={() => setShowProfileMenu(v => !v)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    height: 44, padding: "0 16px",
+                    background: "#70a0ff",
+                    border: "none", borderRadius: 8,
+                    cursor: "pointer",
+                    fontFamily: "Inter, sans-serif",
+                    color: "#fff",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#558bff"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 12px rgba(112,160,255,0.3)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#70a0ff"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
+                >
+                  {/* Аватар — белый круг с буквой */}
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: "rgba(255,255,255,0.25)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#fff", fontSize: 13, fontWeight: 700, flexShrink: 0,
+                  }}>
+                    {(user.first_name || user.username || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 500, lineHeight: "24px" }}>
+                    {user.first_name || user.username}
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                </button>
+
+                {showProfileMenu && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 8px)", right: 0,
+                    background: "#fff", borderRadius: 12,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                    border: "1px solid #f0f0f0", minWidth: 210, zIndex: 1000, overflow: "hidden",
+                    fontFamily: "Inter, sans-serif",
+                  }}>
+                    <div style={{ padding: "14px 16px", borderBottom: "1px solid #f5f5f5" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a2e" }}>
+                        {user.first_name} {user.last_name}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#939393", marginTop: 2 }}>{user.email}</div>
+                      <div style={{ fontSize: 11, color: "#70a0ff", marginTop: 2, fontWeight: 500 }}>
+                        {getRoleLabel(user.role?.name ?? "")}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setShowProfileMenu(false); navigate(getDashboardRoute(user.role?.name ?? "")); }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10, width: "100%",
+                        padding: "12px 16px", background: "none", border: "none",
+                        cursor: "pointer", fontSize: 13, color: "#1a1a2e",
+                        fontFamily: "Inter, sans-serif", textAlign: "left",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#f7f9fa")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#70a0ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                      </svg>
+                      Личный кабинет
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10, width: "100%",
+                        padding: "12px 16px", background: "none", border: "none",
+                        cursor: "pointer", fontSize: 13, color: "#f5222d",
+                        fontFamily: "Inter, sans-serif", textAlign: "left", borderTop: "1px solid #f5f5f5",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#fff5f5")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5222d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                      </svg>
+                      Выйти
+                    </button>
+                  </div>
+                )}
+                </div>
+              </>
+            ) : (
+              /* ── Не авторизован: кнопки Войти / Зарегистрироваться ── */
+              <>
+                <div className={styles.button10}>
+                  <div className={styles.div88}>Создать объявление</div>
+                </div>
+                <div className={styles.button11} onClick={() => setShowRegister(true)}>
+                  <div className={styles.div88}>Зарегистрироваться</div>
+                </div>
+                <div className={styles.button12} onClick={() => setShowLogin(true)}>
+                  <img src="/assets/Icon.svg" className={styles.icon9} />
+                  <div className={styles.div90}>Войти</div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

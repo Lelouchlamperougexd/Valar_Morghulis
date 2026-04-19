@@ -228,6 +228,92 @@ export async function createListing(payload: CreateListingPayload): Promise<Comp
   return res.data.data;
 }
 
+// ─── Projects (Developer only) ────────────────────────────────────────────────
+
+export interface BackendProject {
+  id: number;
+  company_id: number;
+  name: string;
+  description: string;
+  city: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateProjectPayload {
+  name: string;
+  description?: string;
+  city: string;
+}
+
+/** GET /projects — developer's own projects */
+export async function getProjects(): Promise<BackendProject[]> {
+  const res = await api.get<Envelope<BackendProject[]>>('/projects');
+  return res.data.data ?? [];
+}
+
+/** POST /projects — create a new project */
+export async function createProject(payload: CreateProjectPayload): Promise<BackendProject> {
+  const res = await api.post<Envelope<BackendProject>>('/projects', payload);
+  return res.data.data;
+}
+
+/** DELETE /projects/{projectID} */
+export async function deleteProject(projectId: number): Promise<void> {
+  await api.delete(`/projects/${projectId}`);
+}
+
+// ─── Public catalog ───────────────────────────────────────────────────────────
+
+export interface CatalogListing {
+  id: number;
+  title: string;
+  description: string;
+  property_type: string;
+  deal_type: string;
+  status: string;
+  price: number;
+  city: string;
+  address: string;
+  rooms?: number;
+  area?: number;
+  floor?: number;
+  total_floors?: number;
+  latitude?: number;
+  longitude?: number;
+  media?: { id: number; listing_id: number; url: string; position: number }[];
+  company_name?: string;
+  created_at: string;
+}
+
+export interface ListingsFilter {
+  deal_type?: string;
+  city?: string;
+  property_type?: string;
+  price_min?: number;
+  price_max?: number;
+  rooms_min?: number;
+  rooms_max?: number;
+  limit?: number;
+  offset?: number;
+}
+
+/** GET /listings — public catalog with optional filters */
+export async function getListings(filter?: ListingsFilter): Promise<CatalogListing[]> {
+  const params: Record<string, string | number> = {};
+  if (filter?.deal_type)    params.deal_type    = filter.deal_type;
+  if (filter?.city)         params.city         = filter.city;
+  if (filter?.property_type) params.property_type = filter.property_type;
+  if (filter?.price_min)    params.price_min    = filter.price_min;
+  if (filter?.price_max)    params.price_max    = filter.price_max;
+  if (filter?.rooms_min)    params.rooms_min    = filter.rooms_min;
+  if (filter?.rooms_max)    params.rooms_max    = filter.rooms_max;
+  if (filter?.limit)        params.limit        = filter.limit;
+  if (filter?.offset)       params.offset       = filter.offset;
+  const res = await api.get<Envelope<CatalogListing[]>>('/listings', { params });
+  return res.data.data ?? [];
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function statusLabel(status: string): string {

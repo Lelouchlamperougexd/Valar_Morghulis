@@ -38,11 +38,11 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
 
       if (roleName === "admin" || roleName === "moderator") {
         navigate("/admin");
-      } else if (roleName === "agency" || roleName === "developer") {
+      } else if (roleName === "agency") {
         navigate("/agency");
-      } else {
-        navigate("/dashboard");
-      }
+      } else if (roleName === "developer") {
+        navigate("/developer");
+      } 
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -123,7 +123,7 @@ const Container: FunctionComponent<Props> = ({ onClose }) => {
               <img src="/assets/password.svg" className={styles.icon} alt="" />
               <img
                 src="/assets/password2.svg"
-                className={styles.buttonIcon}
+                className={styles.buttonIcon2}
                 alt="Показать пароль"
                 style={{ cursor: "pointer" }}
                 onClick={() => setShowPassword((v) => !v)}
